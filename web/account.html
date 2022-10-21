@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>WebAuthn - Account</title>
+</head>
+
+<body>
+  <h1><a href="/">WebAuthn - Account</a></h1>
+
+  <p><a href="#" id="logout">↩️&nbsp;Logout</a></p>
+
+  <form>
+    <p>
+      <label for="email">Email address:</label><br />
+      <input type="email" id="email" required placeholder="email@example.com" />
+    </p>
+
+    <button id="btnUpdate">
+      <strong>📝&nbsp;Update</strong>
+    </button>
+  </form>
+
+  <p>
+    <label for="deviceList">Registered devices:</label>
+  </p>
+  <ul id="deviceList">
+    <li id="0">Default device <strong>Last used</strong> now <a href="#" id="deviceRename">✏️ Rename</a> <a href="#"
+        id="deviceRemove">❌ Remove</a> </li>
+  </ul>
+
+  <p><a href="#" id="deviceAdd">🔐&nbsp;Add new device</strong></p>
+
+  <p><a href="#" id="deleteAccount">⚠️&nbsp;Delete account</a></p>
+</body>
+
+</html>

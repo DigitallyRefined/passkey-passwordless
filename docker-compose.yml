@@ -1,0 +1,38 @@
+services:
+  web:
+    image: nginx
+    restart: unless-stopped
+    ports:
+      - 3000:80
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+
+  api:
+    image: node:lts
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    volumes:
+      - ./api:/app
+    env_file: apps.env
+    working_dir: /app
+    command: bash -c "npm install && npm start"
+
+  db:
+    image: mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - db:/data/db
+    env_file: apps.env
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    env_file: apps.env
+
+volumes:
+  db:

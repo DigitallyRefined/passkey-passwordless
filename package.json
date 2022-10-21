@@ -1,0 +1,22 @@
+{
+  "name": "webauthn-passwordless",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "bash -x ./start.sh",
+    "reset:db": "bash -x ./reset-db.sh",
+    "build": "tsc",
+    "postinstall": "cd web && npm install"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DigitallyRefined/webauthn-passwordless.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DigitallyRefined/webauthn-passwordless/issues"
+  },
+  "homepage": "https://github.com/DigitallyRefined/webauthn-passwordless#readme"
+}
