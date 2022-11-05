@@ -12,7 +12,116 @@
 <body>
   <h1><a href="/">WebAuthn - Register</a></h1>
 
-  <form>
+  <script type="module">
+    import {
+      browserSupportsWebAuthn,
+      startRegistration,
+    } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+
+    import { config } from './config.js';
+    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
+
+    const regForm = document.querySelector('#regForm');
+    const feedbackTxt = document.querySelector('#feedbackTxt');
+
+    // Depending on the residentKey setting allow the user to choose if they want to save their login
+    const rememberCheckbox = document.querySelector('#remember');
+    if (residentKey === 'preferred') {
+      rememberCheckbox.checked = true;
+    }
+    if (residentKey === 'required') {
+      rememberCheckbox.checked = true;
+      rememberCheckbox.disabled = true;
+    }
+
+    /**
+     * Registration
+     */
+    document.querySelector('#regForm').addEventListener('submit', async (e) => {
+      // Reset success/error messages
+      feedbackTxt.innerText = '';
+
+      const email = document.querySelector('#email').value;
+      const rememberMe = document.querySelector('#remember').checked;
+
+      if (!regForm.checkValidity()) {
+        throw new Error('Fill out the form');
+      }
+
+      e.preventDefault();
+
+      try {
+        const res = await fetch(`${config.apiUrl}/registration/generate-options`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        let attRes;
+        try {
+          const opts = await res.json();
+          if (!res.ok) {
+            throw new Error(opts.code || opts);
+          }
+
+          opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
+          opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
+          opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
+          opts.extensions = {
+            credProps: rememberMe,
+          };
+
+          console.log('Registration Options', JSON.stringify(opts, null, 2));
+
+          attRes = await startRegistration(opts);
+          console.log('Registration Response', JSON.stringify(attRes, null, 2));
+          if (attRes?.clientExtensionResults?.credProps?.rk) {
+            localStorage.setItem('hasRk', true);
+          } else {
+            localStorage.removeItem('hasRk');
+          }
+        } catch (error) {
+          if (error.name === 'InvalidStateError') {
+            throw new Error(`Error: Authenticator may have already been registered ${e.message}`);
+          } else {
+            throw error;
+          }
+        }
+
+        const verificationRes = await fetch(`${config.apiUrl}/registration/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, credential: attRes }),
+        });
+
+        const verificationJSON = await verificationRes.json();
+        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
+
+        if (!verificationRes.ok) {
+          throw new Error('Error from API');
+        }
+
+        if (verificationJSON && verificationJSON.verified) {
+          feedbackTxt.innerText = 'Authenticator registered!';
+        } else {
+          throw new Error(`Oh no, something went wrong! Response: ${JSON.stringify(verificationJSON, null, 2)}.`);
+        }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        regForm.style.display = 'none';
+        feedbackTxt.innerText = `Check your email, we've sent you a login link. ${feedbackTxt.innerText}`;
+      }
+    });
+  </script>
+
+  <pre id="feedbackTxt"></pre>
+
+  <form id="regForm">
     <p>
       <label for="email">Email address:</label><br />
       <input type="email" id="email" required placeholder="email@example.com" />

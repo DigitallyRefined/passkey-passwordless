@@ -11,7 +11,104 @@
 
 <body>
   <h1><a href="/">WebAuthn - Login</a></h1>
-  <form>
+
+  <script type="module">
+    import {
+      browserSupportsWebAuthn,
+      startAuthentication,
+    } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+
+    import { config } from './config.js';
+    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
+
+    const loginForm = document.querySelector('#loginForm');
+    const feedbackTxt = document.querySelector('#feedbackTxt');
+
+    const rememberedEmail = localStorage.getItem('email');
+    if (rememberedEmail) {
+      document.querySelector('#email').value = rememberedEmail;
+      document.querySelector('#remember').checked = true;
+    }
+
+    /**
+     * Authentication
+     */
+    document.querySelector('#btnAuthBegin').addEventListener('click', async (e) => {
+      // Reset success/error messages
+      feedbackTxt.innerText = '';
+
+      const email = document.querySelector('#email').value;
+      const rememberMe = document.querySelector('#remember').checked;
+
+      if (rememberMe) {
+        localStorage.setItem('email', email);
+      } else {
+        localStorage.removeItem('email');
+      }
+
+      if (!loginForm.checkValidity()) {
+        throw new Error('Fill out the form');
+      }
+
+      e.preventDefault();
+
+      try {
+        if (!browserSupportsWebAuthn()) {
+          throw new Error("It seems this browser doesn't support WebAuthn...");
+        }
+
+        const res = await fetch(`${config.apiUrl}/authentication/generate-options`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        let asseRes;
+        const opts = await res.json();
+        console.log('Authentication Options', JSON.stringify(opts, null, 2));
+
+        if (!res.ok) {
+          feedbackTxt.innerText = opts.code;
+          throw new Error('Error from API');
+        }
+
+        asseRes = await startAuthentication(opts);
+        console.log('Authentication Response', JSON.stringify(asseRes, null, 2));
+
+        const verificationRes = await fetch(`${config.apiUrl}/authentication/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, credential: asseRes }),
+        });
+
+        const verificationJSON = await verificationRes.json();
+        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
+        if (verificationJSON?.clientExtensionResults?.credProps?.rk) {
+          localStorage.setItem('hasRk', true);
+        } else {
+          localStorage.removeItem('hasRk');
+        }
+
+        if (verificationJSON && verificationJSON.verified) {
+          feedbackTxt.innerText = `User authenticated!`;
+          window.location = 'account.html';
+        } else {
+          throw new Error(verificationJSON);
+        }
+      } catch {
+        loginForm.style.display = 'none';
+        feedbackTxt.innerText = "Check your email, we've sent you a login link.";
+      }
+    });
+  </script>
+
+  <pre id="feedbackTxt"></pre>
+
+  <form id="loginForm">
     <p>
       <label for="email">Email address:</label><br />
       <input type="email" id="email" required placeholder="email@example.com" />

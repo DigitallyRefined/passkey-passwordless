@@ -1,0 +1,17 @@
+{
+  "name": "webauthn-passwordless-web",
+  "version": "0.0.1",
+  "main": "index.html",
+  "dependencies": {
+    "@simplewebauthn/browser": "^6.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DigitallyRefined/webauthn-passwordless.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DigitallyRefined/webauthn-passwordless/issues"
+  },
+  "homepage": "https://github.com/DigitallyRefined/webauthn-passwordless#readme"
+}
