@@ -9,9 +9,11 @@ import base64url from 'base64url';
 
 import type { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types';
 
-import { inMemoryChallenges, inMemoryUserDeviceDB } from './inMemoryDb';
+import * as users from './db/users';
+import * as anonymousChallenges from './db/anonymousChallenges';
+
 import { config } from './config';
-import { User } from './db/register';
+import { getWebAuthnValidUntil } from './db/index';
 
 const {
   webUrl,
@@ -21,9 +23,9 @@ const {
 /**
  * Login (a.k.a. "Authentication")
  */
-export const authenticationGenerateOptions = ({ id, email }: any) => {
+export const authenticationGenerateOptions = async ({ email }: any) => {
   // You need to know the user by this point
-  const user = inMemoryUserDeviceDB[email];
+  const user = email ? await users.get({ email }) : undefined;
 
   const opts: GenerateAuthenticationOptionsOpts = {
     timeout,
@@ -44,9 +46,11 @@ export const authenticationGenerateOptions = ({ id, email }: any) => {
    * after you verify an authenticator response.
    */
   if (user) {
-    user.currentChallenge = options.challenge;
+    user.challenge.validUntil = getWebAuthnValidUntil();
+    user.challenge.data = options.challenge;
+    await users.replace({ email: user.email }, user);
   } else {
-    inMemoryChallenges.push(options.challenge);
+    await anonymousChallenges.save(options.challenge);
   }
 
   return options;
@@ -59,39 +63,26 @@ export const authenticationVerify = async ({
   email: string;
   credential: AuthenticationCredentialJSON;
 }) => {
-  let user: any;
+  let user: users.User | undefined;
   let expectedChallenge: string | undefined = undefined;
   if (email) {
-    user = inMemoryUserDeviceDB[email];
-    expectedChallenge = user.currentChallenge;
+    user = await users.getForChallenge({ email });
+    expectedChallenge = user.challenge.data;
   } else if (credential.response.userHandle) {
-    const findEmail = Object.keys(inMemoryUserDeviceDB).find(
-      (key: string) => inMemoryUserDeviceDB[key].id === credential.response.userHandle
-    );
-    if (!findEmail) {
-      throw new Error('User not registered');
-    }
-    user = inMemoryUserDeviceDB[findEmail];
+    user = await users.get({ id: credential.response.userHandle });
 
     const { challenge } = JSON.parse(Buffer.from(credential.response.clientDataJSON, 'base64') as any as string);
-    console.log({ challenge });
-    if (inMemoryChallenges.includes(challenge)) expectedChallenge = challenge;
+    if (await anonymousChallenges.exists(challenge)) expectedChallenge = challenge;
   } else {
     throw new Error('Unable to verify login');
   }
 
-  if (!user) {
-    throw new Error('User not registered');
-  }
-
-  console.log(JSON.stringify({ email, credential, inMemoryUserDeviceDB, user }, null, 2));
-
-  let dbAuthenticator;
+  let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
   const bodyCredIDBuffer = base64url.toBuffer(credential.rawId);
   // "Query the DB" here for an authenticator matching `credentialID`
-  for (const dev of user.devices) {
-    if (dev.credentialID.equals(bodyCredIDBuffer)) {
-      dbAuthenticator = dev;
+  for (const device of user.devices) {
+    if (device.credentialID.equals(bodyCredIDBuffer)) {
+      dbAuthenticator = device;
       break;
     }
   }
@@ -116,9 +107,9 @@ export const authenticationVerify = async ({
   if (verified) {
     // Update the authenticator's counter in the DB to the newest count in the authentication
     dbAuthenticator.counter = authenticationInfo.newCounter;
+    dbAuthenticator.lastUsed = Date.now();
+    await users.updateDevice({ email: user.email }, dbAuthenticator);
   }
-
-  console.log(JSON.stringify({ user, verified, authenticationInfo }, null, 2));
 
   return { verified, clientExtensionResults: dbAuthenticator.clientExtensionResults };
 };

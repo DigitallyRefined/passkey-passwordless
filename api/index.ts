@@ -2,9 +2,9 @@ import http from 'http';
 
 import express from 'express';
 import cors from 'cors';
+import { parse as parseUserAgent } from 'platform';
 
 import { asyncHandler, errorHandler } from './handlers';
-import { register } from './db/register';
 import { registrationGenerateOptions, registrationVerify } from './register';
 import { authenticationGenerateOptions, authenticationVerify } from './login';
 
@@ -12,31 +12,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post(
+app.get(
   '/',
   asyncHandler(async (req, res) => {
-    res.send(await register(req.body));
+    res.send('ok');
   })
 );
 
 app.post(
   '/registration/generate-options',
   asyncHandler(async (req, res) => {
-    res.send(registrationGenerateOptions(req.body));
+    res.send(await registrationGenerateOptions(req.body));
   })
 );
 
 app.post(
   '/registration/verify',
   asyncHandler(async (req, res) => {
-    res.send(await registrationVerify(req.body));
+    const platform = parseUserAgent(req.headers['user-agent']);
+    res.send(await registrationVerify(req.body, platform));
   })
 );
 
 app.post(
   '/authentication/generate-options',
   asyncHandler(async (req, res) => {
-    res.send(authenticationGenerateOptions(req.body));
+    res.send(await authenticationGenerateOptions(req.body));
   })
 );
 

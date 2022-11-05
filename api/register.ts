@@ -6,10 +6,13 @@ import type {
 } from '@simplewebauthn/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { RegistrationCredentialJSON, AuthenticatorDevice } from '@simplewebauthn/typescript-types';
-import { User } from './db/register';
-import { inMemoryUserDeviceDB } from './inMemoryDb';
+import type { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import type Platform from 'platform';
+
+import * as users from './db/users';
+import type { User } from './db/users';
 import { config } from './config';
+import { getWebAuthnValidUntil } from './db/index';
 
 const {
   webUrl,
@@ -24,8 +27,8 @@ export const expectedOrigin = webUrl;
 /**
  * Registration (a.k.a. "Registration")
  */
-export const registrationGenerateOptions = ({ email }: User) => {
-  if (inMemoryUserDeviceDB[email]) {
+export const registrationGenerateOptions = async ({ email }: User) => {
+  if (await users.doesUserExist({ email })) {
     throw new Error('Email address already registered');
   }
 
@@ -56,9 +59,9 @@ export const registrationGenerateOptions = ({ email }: User) => {
 
   const options = generateRegistrationOptions(opts);
 
-  inMemoryUserDeviceDB[email] = {
+  await users.create({
     id: newUserId,
-    username: email,
+    email,
     devices: [],
     /**
      * A simple way of storing a user's current challenge being signed by registration or authentication.
@@ -68,26 +71,28 @@ export const registrationGenerateOptions = ({ email }: User) => {
      * The server needs to temporarily remember this value for verification, so don't lose it until
      * after you verify an authenticator response.
      */
-    currentChallenge: options.challenge,
-  };
-
-  console.log(JSON.stringify({ options }, null, 2));
+    challenge: {
+      validUntil: getWebAuthnValidUntil(),
+      data: options.challenge,
+    },
+  });
 
   return options;
 };
 
-export const registrationVerify = async ({
-  email,
-  credential,
-}: {
-  email: string;
-  credential: RegistrationCredentialJSON;
-}) => {
-  console.log(JSON.stringify({ credential, inMemoryUserDeviceDB }, null, 2));
+export const registrationVerify = async (
+  {
+    email,
+    credential,
+  }: {
+    email: string;
+    credential: RegistrationCredentialJSON;
+  },
+  platform: typeof Platform
+) => {
+  const user = await users.getForChallenge({ email });
 
-  const user = inMemoryUserDeviceDB[email];
-
-  const expectedChallenge = user.currentChallenge;
+  const expectedChallenge = user.challenge.data;
 
   let verification: VerifiedRegistrationResponse;
 
@@ -111,18 +116,19 @@ export const registrationVerify = async ({
       /**
        * Add the returned device to the user's list of devices
        */
-      const newDevice: AuthenticatorDevice & { clientExtensionResults: AuthenticationExtensionsClientOutputs } = {
+      const newDevice: users.AuthenticatorDeviceDetails = {
         credentialPublicKey,
         credentialID,
         counter,
         transports: credential.transports,
         clientExtensionResults: credential.clientExtensionResults,
+        name: [platform.name, platform.product, platform.os?.family].filter(Boolean).join(' '),
+        lastUsed: Date.now(),
       };
       user.devices.push(newDevice);
+      await users.replace({ email: user.email }, user);
     }
   }
-
-  console.log(JSON.stringify({ inMemoryUserDeviceDB }, null, 2));
 
   return { verified };
 };
