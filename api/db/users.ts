@@ -1,4 +1,5 @@
 import { AuthenticatorDevice } from '@simplewebauthn/typescript-types';
+import { FindOneAndUpdateOptions } from 'mongodb';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
 export interface AuthenticatorDeviceDetails extends AuthenticatorDevice {
@@ -78,5 +79,13 @@ export const updateDevice = async (user: EmailOrId, device: AuthenticatorDevice)
       },
     }
   );
+
+export const removeDevice = async (user: EmailOrId, deviceIndex: number) => {
+  const userToUpdate = await get(user);
+  userToUpdate.devices.splice(deviceIndex, 1);
+
+  await replace(user, userToUpdate);
+  return userToUpdate;
+};
 
 export const remove = async (user: EmailOrId) => users.findOneAndDelete(byIdOrEmail(user));

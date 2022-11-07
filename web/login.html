@@ -70,8 +70,7 @@
         console.log('Authentication Options', JSON.stringify(opts, null, 2));
 
         if (!res.ok) {
-          feedbackTxt.innerText = opts.code;
-          throw new Error('Error from API');
+          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
         }
 
         asseRes = await startAuthentication(opts);
@@ -83,10 +82,14 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email, credential: asseRes }),
+          credentials: 'include',
         });
 
         const verificationJSON = await verificationRes.json();
-        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
+        if (!verificationRes.ok) {
+          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
+        }
+
         if (verificationJSON?.clientExtensionResults?.credProps?.rk) {
           localStorage.setItem('hasRk', true);
         } else {
@@ -94,19 +97,25 @@
         }
 
         if (verificationJSON && verificationJSON.verified) {
-          feedbackTxt.innerText = `User authenticated!`;
           window.location = 'account.html';
         } else {
-          throw new Error(verificationJSON);
+          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
         }
-      } catch {
-        loginForm.style.display = 'none';
-        feedbackTxt.innerText = "Check your email, we've sent you a login link.";
+      } catch (err) {
+        if (err.message?.includes('Failed')) {
+          feedbackTxt.innerText = err.message.includes('not found')
+            ? 'Account not found or email address has not been verified.'
+            : 'There was an error while trying to login.';
+          throw err;
+        }
       }
+
+      loginForm.style.display = 'none';
+      feedbackTxt.innerText = "Check your email, we've sent you a login link.";
     });
   </script>
 
-  <pre id="feedbackTxt"></pre>
+  <p id="feedbackTxt"></p>
 
   <form id="loginForm">
     <p>

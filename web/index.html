@@ -79,16 +79,17 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ credential: asseRes }),
+          credentials: 'include',
         });
 
         const verificationJSON = await verificationRes.json();
         console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
 
         if (verificationJSON && verificationJSON.verified) {
-          console.log(`User authenticated!`);
+          console.log(`User authenticated`);
           window.location = 'account.html';
         } else {
-          throw new Error(`Oh no, something went wrong! Response: ${JSON.stringify(verificationJSON)}`);
+          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
         }
       } catch (err) {
         localStorage.removeItem('hasRk');

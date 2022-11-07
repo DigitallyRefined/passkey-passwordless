@@ -12,30 +12,257 @@
 <body>
   <h1><a href="/">WebAuthn - Account</a></h1>
 
-  <p><a href="#" id="logout">↩️&nbsp;Logout</a></p>
+  <section id="account" style="visibility: hidden">
+    <p><a href="#" id="logout">↩️&nbsp;Logout</a></p>
 
-  <form>
+    <form id="updateAccount">
+      <p>
+        <label for="email">Email address:</label><br />
+        <input type="email" id="email" required placeholder="email@example.com" />
+      </p>
+
+      <p>
+        <input type="checkbox" id="remember" />
+        <label for="remember">Remember my email address</label>
+      </p>
+
+      <button id="btnUpdate" type="submit">
+        <strong>📝&nbsp;Update</strong>
+      </button>
+    </form>
+
     <p>
-      <label for="email">Email address:</label><br />
-      <input type="email" id="email" required placeholder="email@example.com" />
+      <label for="deviceList">Registered devices:</label>
     </p>
+    <ul id="deviceList"></ul>
 
-    <button id="btnUpdate">
-      <strong>📝&nbsp;Update</strong>
-    </button>
-  </form>
+    <p><a href="#" id="deviceAdd">🔐&nbsp;Add new device</a></p>
 
-  <p>
-    <label for="deviceList">Registered devices:</label>
-  </p>
-  <ul id="deviceList">
-    <li id="0">Default device <strong>Last used</strong> now <a href="#" id="deviceRename">✏️ Rename</a> <a href="#"
-        id="deviceRemove">❌ Remove</a> </li>
-  </ul>
+    <p><a href="#" id="deleteAccount">⚠️&nbsp;Delete account</a></p>
+  </section>
 
-  <p><a href="#" id="deviceAdd">🔐&nbsp;Add new device</strong></p>
+  <script type="module">
+    import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
-  <p><a href="#" id="deleteAccount">⚠️&nbsp;Delete account</a></p>
+    import { config } from './config.js';
+
+    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
+
+    const accountReq = await fetch(`${config.apiUrl}/account`, {
+      credentials: 'include',
+    });
+    const accountDetails = await accountReq.json();
+    if (!accountDetails.email) {
+      window.location = '/';
+    }
+
+    document.querySelector('#email').value = accountDetails.email;
+
+    // Depending on the residentKey setting allow the user to choose if they want to save their login
+    const rememberCheckbox = document.querySelector('#remember');
+    if (residentKey === 'preferred') {
+      rememberCheckbox.checked = true;
+    }
+    if (residentKey === 'required') {
+      rememberCheckbox.checked = true;
+      rememberCheckbox.disabled = true;
+    }
+
+    const getRelativeTimeSince = (pastDate) => {
+      const diff = pastDate - new Date();
+      const seconds = diff / 1000;
+      const minutes = seconds / 60;
+      const hours = minutes / 60;
+      const days = hours / 24;
+
+      const formatter = new Intl.RelativeTimeFormat(undefined, {
+        numeric: 'auto',
+      });
+
+      if (days < -1) {
+        return formatter.format(Math.floor(days), 'day');
+      }
+      if (hours < -1) {
+        return formatter.format(Math.floor(hours), 'hour');
+      }
+      if (minutes < -1) {
+        return formatter.format(Math.floor(minutes), 'minute');
+      }
+      return formatter.format(Math.floor(seconds), 'second');
+    };
+
+    const deviceList = document.querySelector('#deviceList');
+    accountDetails.devices.map(({ name, lastUsed }, idx) => {
+      const deviceLi = document.createElement('li');
+      deviceLi.id = idx;
+      deviceLi.innerText = `${name} `;
+      deviceLi.innerHTML += `<strong>Last used</strong> ${getRelativeTimeSince(lastUsed)}
+        <a href="#" class="deviceRename">✏️ Rename</a>
+        <a href="#" class="deviceRemove">❌ Remove</a>`;
+
+      deviceList.appendChild(deviceLi);
+    });
+
+    document.querySelector('#account').style.visibility = 'visible';
+
+    const logout = async () => {
+      await fetch(`${config.apiUrl}/account/logout`, {
+        credentials: 'include',
+      });
+      window.location = '/';
+    };
+
+    const handleRes = (isOk, action) => {
+      if (isOk) {
+        location.reload();
+      } else {
+        alert(`Error ${action}`);
+      }
+    };
+
+    const addDevice = async (requestDeviceName = false) => {
+      try {
+        const res = await fetch(`${config.apiUrl}/account/add-device/generate-options`, {
+          credentials: 'include',
+        });
+
+        const opts = await res.json();
+        if (!res.ok) {
+          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+        }
+
+        const rememberMe = document.querySelector('#remember').checked;
+
+        opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
+        opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
+        opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
+        opts.extensions = {
+          credProps: rememberMe,
+        };
+
+        console.log('Registration Options', JSON.stringify(opts, null, 2));
+
+        const attRes = await startRegistration(opts);
+        console.log('Registration Response', JSON.stringify(attRes, null, 2));
+        if (attRes?.clientExtensionResults?.credProps?.rk) {
+          localStorage.setItem('hasRk', true);
+        } else {
+          localStorage.removeItem('hasRk');
+        }
+
+        const deviceName = requestDeviceName ? prompt('Device name') : '';
+
+        const verificationRes = await fetch(`${config.apiUrl}/account/add-device/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ credential: attRes, deviceName }),
+          credentials: 'include',
+        });
+
+        const verificationJSON = await verificationRes.json();
+        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
+        if (!verificationRes.ok) {
+          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
+        }
+
+        if (verificationJSON && verificationJSON.verified) {
+          window.location.reload();
+        } else {
+          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
+        }
+      } catch (err) {
+        alert(`Error adding device ${err.message}`);
+      }
+    };
+
+    document.querySelector('#logout').addEventListener('click', async (e) => {
+      await logout();
+    });
+
+    const form = document.querySelector('#updateAccount');
+    form.addEventListener('submit', async (e) => {
+      if (!form.checkValidity()) {
+        throw new Error('Fill out the form');
+      }
+
+      e.preventDefault();
+
+      const newEmail = document.querySelector('#email').value;
+      const rememberMe = document.querySelector('#remember').checked;
+
+      if (rememberMe) {
+        localStorage.setItem('email', newEmail);
+      } else {
+        localStorage.removeItem('email');
+      }
+
+      if (accountDetails.email === newEmail) {
+        console.log('Email address has not changed');
+        return;
+      }
+
+      const req = await fetch(`${config.apiUrl}/account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newEmail }),
+        credentials: 'include',
+      });
+
+      await addDevice();
+      await logout();
+    });
+
+    document.querySelectorAll('.deviceRename').forEach((el) =>
+      el?.addEventListener('click', async (e) => {
+        const { id } = e.target.parentNode;
+        const newName = prompt('Rename device to', accountDetails.devices[id].name);
+        if (newName) {
+          const req = await fetch(`${config.apiUrl}/account/device/${id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ newName }),
+            credentials: 'include',
+          });
+
+          handleRes(req.ok, 'updating');
+        }
+      })
+    );
+
+    document.querySelectorAll('.deviceRemove').forEach((el) =>
+      el?.addEventListener('click', async (e) => {
+        if (confirm('Are you sure you want to remove this device?') === true) {
+          const req = await fetch(`${config.apiUrl}/account/device/${e.target.parentNode.id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+
+          handleRes(req.ok, 'removing');
+        }
+      })
+    );
+
+    document.querySelector('#deviceAdd').addEventListener('click', async (e) => {
+      await addDevice(true);
+    });
+
+    document.querySelector('#deleteAccount').addEventListener('click', async (e) => {
+      if (confirm('Are you sure you want to delete your account?') === true) {
+        const req = await fetch(`${config.apiUrl}/account`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        handleRes(req.ok, 'deleting');
+      }
+    });
+  </script>
 </body>
 
 </html>

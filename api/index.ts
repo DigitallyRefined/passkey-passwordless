@@ -1,21 +1,37 @@
 import http from 'http';
 
-import express from 'express';
+import express, { Response } from 'express';
 import cors from 'cors';
-import { parse as parseUserAgent } from 'platform';
+import { expressjwt, Request as RequestJwt } from 'express-jwt';
+import { v4 as uuidv4 } from 'uuid';
+import cookieParser from 'cookie-parser';
 
 import { asyncHandler, errorHandler } from './handlers';
 import { registrationGenerateOptions, registrationVerify } from './register';
 import { authenticationGenerateOptions, authenticationVerify } from './login';
+import { config } from './config';
+import {
+  addDeviceGenerateOptions,
+  addDeviceVerify,
+  deleteAccount,
+  deleteDevice,
+  getAccount,
+  renameDevice,
+  updateAccount,
+} from './account';
+import { getDeviceNameFromPlatform } from './utils';
+
+export const JWT_SECRET = process.env.JWT_SECRET || uuidv4();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: config.webUrl, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.get(
   '/',
   asyncHandler(async (req, res) => {
-    res.send('ok');
+    res.send({ status: 'ok' });
   })
 );
 
@@ -29,8 +45,7 @@ app.post(
 app.post(
   '/registration/verify',
   asyncHandler(async (req, res) => {
-    const platform = parseUserAgent(req.headers['user-agent']);
-    res.send(await registrationVerify(req.body, platform));
+    res.send(await registrationVerify(req.body, getDeviceNameFromPlatform(req.headers['user-agent'])));
   })
 );
 
@@ -41,10 +56,102 @@ app.post(
   })
 );
 
+const setLoginJwtCookie = (res: Response, jwtToken: string) => {
+  res.cookie('jwt', jwtToken, {
+    // @TODO move to config
+    secure: false, // https
+    // httpOnly: true,
+    expires: new Date(Date.now() + 24 * 3600000),
+  });
+};
+
 app.post(
   '/authentication/verify',
   asyncHandler(async (req, res) => {
-    res.send(await authenticationVerify(req.body));
+    const authRes = await authenticationVerify(req.body);
+    setLoginJwtCookie(res, authRes.jwtToken);
+    res.send(authRes);
+  })
+);
+
+app.use(
+  '/account',
+  expressjwt({
+    secret: JWT_SECRET,
+    algorithms: ['HS256'],
+    credentialsRequired: true,
+    getToken: (req) => req.cookies?.['jwt'] || null,
+  })
+);
+
+app.get(
+  '/account',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    res.send(await getAccount(req.auth));
+  })
+);
+
+app.post(
+  '/account',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await updateAccount(req.auth, req.body);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
+  })
+);
+
+app.get(
+  '/account/add-device/generate-options',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    res.send(await addDeviceGenerateOptions(req.auth));
+  })
+);
+
+app.post(
+  '/account/add-device/verify',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await addDeviceVerify(
+      req.auth,
+      req.body.credential,
+      req.body.deviceName || getDeviceNameFromPlatform(req.headers['user-agent'])
+    );
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send({ verified: Boolean(updatedUser.jwtToken) });
+  })
+);
+
+app.post(
+  '/account/device/:id',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await renameDevice(req.auth, req.params.id, req.body);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
+  })
+);
+
+app.delete(
+  '/account/device/:id',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await deleteDevice(req.auth, req.params.id);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
+  })
+);
+
+app.delete(
+  '/account',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    await deleteAccount(req.auth);
+    res.clearCookie('jwt');
+    res.send({ status: 'ok' });
+  })
+);
+
+app.get(
+  '/account/logout',
+  asyncHandler(async (req, res) => {
+    res.clearCookie('jwt');
+    res.send({ status: 'ok' });
   })
 );
 

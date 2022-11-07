@@ -7,7 +7,6 @@ import type {
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
-import type Platform from 'platform';
 
 import * as users from './db/users';
 import type { User } from './db/users';
@@ -27,21 +26,27 @@ export const expectedOrigin = webUrl;
 /**
  * Registration (a.k.a. "Registration")
  */
-export const registrationGenerateOptions = async ({ email }: User) => {
-  if (await users.doesUserExist({ email })) {
+export const registrationGenerateOptions = async ({ email }: User, existingUser?: User) => {
+  if (!existingUser && (await users.doesUserExist({ email }))) {
     throw new Error('Email address already registered');
   }
 
-  const newUserId = uuidv4();
+  const userID = existingUser?.id || uuidv4();
 
   const opts: GenerateRegistrationOptionsOpts = {
     rpName,
     rpID,
-    userID: newUserId,
+    userID,
     userName: email,
     timeout,
     attestationType,
-
+    excludeCredentials: existingUser
+      ? existingUser.devices.map((device) => ({
+          id: device.credentialID,
+          type: 'public-key',
+          transports: device.transports,
+        }))
+      : [],
     /**
      * The optional authenticatorSelection property allows for specifying more constraints around
      * the types of authenticators that users to can use for registration
@@ -59,23 +64,30 @@ export const registrationGenerateOptions = async ({ email }: User) => {
 
   const options = generateRegistrationOptions(opts);
 
-  await users.create({
-    id: newUserId,
-    email,
-    devices: [],
-    /**
-     * A simple way of storing a user's current challenge being signed by registration or authentication.
-     * It should be expired after `timeout` milliseconds (optional argument for `generate` methods,
-     * defaults to 60000ms)
-     *
-     * The server needs to temporarily remember this value for verification, so don't lose it until
-     * after you verify an authenticator response.
-     */
-    challenge: {
-      validUntil: getWebAuthnValidUntil(),
-      data: options.challenge,
-    },
-  });
+  /**
+   * A simple way of storing a user's current challenge being signed by registration or authentication.
+   * It should be expired after `timeout` milliseconds (optional argument for `generate` methods,
+   * defaults to 60000ms)
+   *
+   * The server needs to temporarily remember this value for verification, so don't lose it until
+   * after you verify an authenticator response.
+   */
+  const challenge = {
+    validUntil: getWebAuthnValidUntil(),
+    data: options.challenge,
+  };
+
+  if (existingUser) {
+    existingUser.challenge = challenge;
+    await users.replace(existingUser, existingUser);
+  } else {
+    await users.create({
+      id: userID,
+      email,
+      devices: [],
+      challenge,
+    });
+  }
 
   return options;
 };
@@ -88,7 +100,7 @@ export const registrationVerify = async (
     email: string;
     credential: RegistrationCredentialJSON;
   },
-  platform: typeof Platform
+  deviceName: string
 ) => {
   const user = await users.getForChallenge({ email });
 
@@ -122,7 +134,7 @@ export const registrationVerify = async (
         counter,
         transports: credential.transports,
         clientExtensionResults: credential.clientExtensionResults,
-        name: [platform.name, platform.product, platform.os?.family].filter(Boolean).join(' '),
+        name: deviceName,
         lastUsed: Date.now(),
       };
       user.devices.push(newDevice);

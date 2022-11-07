@@ -14,6 +14,7 @@ import * as anonymousChallenges from './db/anonymousChallenges';
 
 import { config } from './config';
 import { getWebAuthnValidUntil } from './db/index';
+import { getJwtToken } from './account';
 
 const {
   webUrl,
@@ -23,7 +24,7 @@ const {
 /**
  * Login (a.k.a. "Authentication")
  */
-export const authenticationGenerateOptions = async ({ email }: any) => {
+export const authenticationGenerateOptions = async ({ email }: users.User) => {
   // You need to know the user by this point
   const user = email ? await users.get({ email }) : undefined;
 
@@ -66,7 +67,7 @@ export const authenticationVerify = async ({
   let user: users.User | undefined;
   let expectedChallenge: string | undefined = undefined;
   if (email) {
-    user = await users.getForChallenge({ email });
+    user = await users.getForChallenge({ email }, 'login');
     expectedChallenge = user.challenge.data;
   } else if (credential.response.userHandle) {
     user = await users.get({ id: credential.response.userHandle });
@@ -111,5 +112,5 @@ export const authenticationVerify = async ({
     await users.updateDevice({ email: user.email }, dbAuthenticator);
   }
 
-  return { verified, clientExtensionResults: dbAuthenticator.clientExtensionResults };
+  return { verified, clientExtensionResults: dbAuthenticator.clientExtensionResults, jwtToken: getJwtToken(user) };
 };
