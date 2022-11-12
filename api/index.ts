@@ -15,8 +15,10 @@ import {
   addDeviceVerify,
   deleteAccount,
   deleteDevice,
+  emailVerify,
   getAccount,
   renameDevice,
+  sendValidationEmail,
   updateAccount,
 } from './account';
 import { getDeviceNameFromPlatform } from './utils';
@@ -46,6 +48,22 @@ app.post(
   '/registration/verify',
   asyncHandler(async (req, res) => {
     res.send(await registrationVerify(req.body, getDeviceNameFromPlatform(req.headers['user-agent'])));
+  })
+);
+
+app.post(
+  '/email/send/validation',
+  asyncHandler(async (req, res) => {
+    res.send(await sendValidationEmail(req.body));
+  })
+);
+
+app.post(
+  '/email/validate',
+  asyncHandler(async (req, res) => {
+    const updatedUser = await emailVerify(req.body.code);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
   })
 );
 

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>WebAuthn - Validate Email</title>
+</head>
+
+<body>
+  <h1><a href="/">WebAuthn - Validate Email</a></h1>
+
+  <p id="feedbackTxt"></p>
+
+  <script type="module">
+    import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+
+    import { config } from './config.js';
+    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
+
+    const feedbackTxt = document.querySelector('#feedbackTxt');
+
+    const params = new URLSearchParams(window.location.search);
+
+    try {
+      const req = await fetch(`${config.apiUrl}/email/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: params.get('code') }),
+        credentials: 'include',
+      });
+
+      const res = await req.json();
+
+      if (!req.ok) {
+        throw new Error(`Failed: ${req.statusText} ${JSON.stringify(res, null, 2)}`);
+      }
+    } catch (err) {
+      feedbackTxt.innerText = err.message.includes('code not found')
+        ? 'Verification code not found or you email has already been confirmed.'
+        : 'There was an error while trying validate your account.';
+      throw err;
+    }
+
+    if (params.has('registerDevice')) {
+      try {
+        const res = await fetch(`${config.apiUrl}/account/add-device/generate-options`, {
+          credentials: 'include',
+        });
+
+        const opts = await res.json();
+        if (!res.ok) {
+          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+        }
+
+        const rememberMe = residentKey === 'preferred' || residentKey === 'required';
+
+        opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
+        opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
+        opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
+        opts.extensions = {
+          credProps: rememberMe,
+        };
+
+        console.log('Registration Options', JSON.stringify(opts, null, 2));
+
+        const attRes = await startRegistration(opts);
+        console.log('Registration Response', JSON.stringify(attRes, null, 2));
+        if (attRes?.clientExtensionResults?.credProps?.rk) {
+          localStorage.setItem('hasRk', true);
+        } else {
+          localStorage.removeItem('hasRk');
+        }
+
+        const verificationRes = await fetch(`${config.apiUrl}/account/add-device/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ credential: attRes }),
+          credentials: 'include',
+        });
+
+        const verificationJSON = await verificationRes.json();
+        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
+        if (!verificationRes.ok) {
+          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
+        }
+
+        if (!verificationJSON || !verificationJSON.verified) {
+          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
+        }
+      } catch (err) {
+        if (err.message.includes('Failed')) {
+          feedbackTxt.innerText = 'There was an error while trying validate your account.';
+          throw err;
+        }
+      }
+    }
+
+    window.location = 'account.html';
+  </script>
+</body>
+
+</html>

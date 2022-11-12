@@ -11,7 +11,7 @@ import type { RegistrationCredentialJSON } from '@simplewebauthn/typescript-type
 import * as users from './db/users';
 import type { User } from './db/users';
 import { config } from './config';
-import { getWebAuthnValidUntil } from './db/index';
+import { getTenMinutesFromNow as tenMinutesFromNow, getWebAuthnValidUntil, sendVerificationEmail } from './utils';
 
 const {
   webUrl,
@@ -81,12 +81,19 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
     existingUser.challenge = challenge;
     await users.replace(existingUser, existingUser);
   } else {
+    const verificationCode = uuidv4();
     await users.create({
       id: userID,
       email,
+      verification: {
+        validated: false,
+        validUntil: tenMinutesFromNow(),
+        data: verificationCode,
+      },
       devices: [],
       challenge,
     });
+    sendVerificationEmail(email, verificationCode);
   }
 
   return options;
@@ -100,9 +107,10 @@ export const registrationVerify = async (
     email: string;
     credential: RegistrationCredentialJSON;
   },
-  deviceName: string
+  deviceName: string,
+  requireEmailValidated = false
 ) => {
-  const user = await users.getForChallenge({ email });
+  const user = await users.getForChallenge({ email }, requireEmailValidated);
 
   const expectedChallenge = user.challenge.data;
 

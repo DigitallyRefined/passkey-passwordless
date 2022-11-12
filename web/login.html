@@ -102,8 +102,19 @@
           throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
         }
       } catch (err) {
-        if (err.message?.includes('Failed')) {
-          feedbackTxt.innerText = err.message.includes('not found')
+        if (err.name === 'NotAllowedError' || err.message?.includes('Authenticator not found') || err.includes?.('Cancelling')) {
+          const sendValidationReq = await fetch(`${config.apiUrl}/email/send/validation`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+          });
+          if (!sendValidationReq.ok) {
+            feedbackTxt.innerText = 'There was an error while trying to send you a validation email';
+          }
+        } else if (err.message?.includes('Failed')) {
+          feedbackTxt.innerText = err.message?.includes('User not found')
             ? 'Account not found or email address has not been verified.'
             : 'There was an error while trying to login.';
           throw err;

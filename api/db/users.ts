@@ -20,6 +20,11 @@ export interface User {
    * The username can be a human-readable name, email, etc... as it is intended only for display.
    */
   email: string;
+  verification: {
+    validated: boolean;
+    validUntil: number;
+    data: string;
+  };
   devices: AuthenticatorDeviceDetails[];
   challenge: {
     validUntil: number;
@@ -32,7 +37,9 @@ const users = database.collection<User>('users');
 export const create = async (user: User) => {
   // Specifying a Schema is optional, but it enables type hints on
   // finds and inserts
-  await users.createIndex({ id: 1, email: 2 }, { unique: true });
+  await users.createIndex({ id: 1 }, { unique: true });
+  await users.createIndex({ email: 2 });
+  await users.createIndex({ 'verification.data': 3 });
 
   const result = await users.insertOne(user);
   console.log(`A document was inserted with the _id: ${result.insertedId}`);
@@ -63,10 +70,33 @@ const convertUser = (user: User | null): User => {
   };
 };
 
-export const get = async (user: EmailOrId) => convertUser(await users.findOne(byIdOrEmail(user)));
+export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}) =>
+  convertUser(
+    await users.findOne({ ...byIdOrEmail(user), ...(requireEmailValidated && { 'verification.validated': true }) })
+  );
 
-export const getForChallenge = async (user: EmailOrId) =>
-  convertUser(await users.findOne({ ...byIdOrEmail(user), 'challenge.validUntil': { $gt: Date.now() } }));
+export const validateEmailCode = async (code: string) => {
+  const now = Date.now();
+  const updated = await users.findOneAndUpdate(
+    { 'verification.data': code, 'verification.validUntil': { $gt: now } },
+    { $set: { 'verification.validated': true, 'verification.validUntil': now } }
+  );
+
+  if (!updated.lastErrorObject?.updatedExisting) {
+    throw new Error('Verification code not found');
+  }
+
+  return updated.value;
+};
+
+export const getForChallenge = async (user: EmailOrId, requireEmailValidated = true) =>
+  convertUser(
+    await users.findOne({
+      ...byIdOrEmail(user),
+      'verification.validated': requireEmailValidated,
+      'challenge.validUntil': { $gt: Date.now() },
+    })
+  );
 
 export const replace = async (user: EmailOrId, update: User) => users.findOneAndReplace(byIdOrEmail(user), update);
 

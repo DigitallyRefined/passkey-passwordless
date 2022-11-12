@@ -1,4 +1,5 @@
-import { getWebAuthnValidUntil, database } from './index';
+import { database } from './index';
+import { getWebAuthnValidUntil } from '../utils';
 
 export interface AnonymousChallenges {
   validUntil: number;
@@ -20,3 +21,7 @@ export const save = async (challenge: AnonymousChallenges['challenge']) => {
 
 export const exists = async (challenge: AnonymousChallenges['challenge']) =>
   anonymousChallenges.findOne({ validUntil: { $gt: Date.now() }, challenge });
+
+export const deleteOld = async () => {
+  anonymousChallenges.deleteMany({ validUntil: { $lt: Date.now() } });
+};

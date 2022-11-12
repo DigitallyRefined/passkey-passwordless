@@ -13,8 +13,8 @@ import * as users from './db/users';
 import * as anonymousChallenges from './db/anonymousChallenges';
 
 import { config } from './config';
-import { getWebAuthnValidUntil } from './db/index';
-import { getJwtToken } from './account';
+import { getWebAuthnValidUntil } from './utils';
+import { getJwtToken, sendValidationEmail } from './account';
 
 const {
   webUrl,
@@ -26,7 +26,11 @@ const {
  */
 export const authenticationGenerateOptions = async ({ email }: users.User) => {
   // You need to know the user by this point
-  const user = email ? await users.get({ email }) : undefined;
+  const user = email ? await users.get({ email }, { requireEmailValidated: false }) : undefined;
+
+  if (user?.verification.validated === false) {
+    throw new Error('Account not verified');
+  }
 
   const opts: GenerateAuthenticationOptionsOpts = {
     timeout,
@@ -51,6 +55,7 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
     user.challenge.data = options.challenge;
     await users.replace({ email: user.email }, user);
   } else {
+    anonymousChallenges.deleteOld();
     await anonymousChallenges.save(options.challenge);
   }
 
@@ -67,7 +72,7 @@ export const authenticationVerify = async ({
   let user: users.User | undefined;
   let expectedChallenge: string | undefined = undefined;
   if (email) {
-    user = await users.getForChallenge({ email }, 'login');
+    user = await users.getForChallenge({ email }, true);
     expectedChallenge = user.challenge.data;
   } else if (credential.response.userHandle) {
     user = await users.get({ id: credential.response.userHandle });
@@ -89,7 +94,7 @@ export const authenticationVerify = async ({
   }
 
   if (!dbAuthenticator) {
-    throw new Error('Authenticator is not registered with this site');
+    throw new Error('Authenticator not found');
   }
 
   let verification: VerifiedAuthenticationResponse;

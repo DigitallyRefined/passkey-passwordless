@@ -1,10 +1,13 @@
 import * as jwt from 'jsonwebtoken';
+import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import { v4 as uuidv4 } from 'uuid';
 
 import { JWT_SECRET } from './index';
 
-import { doesUserExist, get, remove, removeDevice, replace, updateDevice, User } from './db/users';
+import * as users from './db/users';
+import type { User } from './db/users';
 import { registrationGenerateOptions, registrationVerify } from './register';
-import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import { getTenMinutesFromNow, sendVerificationEmail } from './utils';
 
 export const getJwtToken = (user: User | null) =>
   user
@@ -28,23 +31,42 @@ export const getAccount = async (user: User) => ({
   devices: user.devices,
 });
 
+export const sendValidationEmail = async ({ email }: User) => {
+  const userToUpdate = await users.get({ email }, { requireEmailValidated: false });
+  const verificationCode = uuidv4();
+  userToUpdate.verification.validUntil = getTenMinutesFromNow();
+  userToUpdate.verification.data = verificationCode;
+  await users.replace({ email }, userToUpdate);
+  sendVerificationEmail(email, verificationCode, true);
+};
+
+export const emailVerify = async (code: string) => {
+  if (!code) {
+    throw new Error('Missing email verification code');
+  }
+
+  const updatedUser = await users.validateEmailCode(code);
+
+  return { jwtToken: getJwtToken(updatedUser) };
+};
+
 export const updateAccount = async (user: User, { newEmail }: { newEmail: string }) => {
-  if (await doesUserExist({ email: newEmail })) {
+  if (await users.doesUserExist({ email: newEmail })) {
     throw new Error('Email already registered');
   }
 
-  const userToUpdate = await get(user);
+  const userToUpdate = await users.get(user);
   userToUpdate.email = newEmail;
   userToUpdate.devices = [];
-  await replace(user, userToUpdate);
+  await users.replace(user, userToUpdate);
   return { jwtToken: getJwtToken(userToUpdate) };
 };
 
-export const addDeviceGenerateOptions = async (user: User) => registrationGenerateOptions(user, await get(user));
+export const addDeviceGenerateOptions = async (user: User) => registrationGenerateOptions(user, await users.get(user));
 
 export const addDeviceVerify = async (user: User, credential: RegistrationCredentialJSON, deviceName: string) => {
-  await registrationVerify({ credential, email: user.email }, deviceName);
-  return { jwtToken: getJwtToken(await get(user)) };
+  await registrationVerify({ credential, email: user.email }, deviceName, true);
+  return { jwtToken: getJwtToken(await users.get(user)) };
 };
 
 export const renameDevice = async (
@@ -52,21 +74,21 @@ export const renameDevice = async (
   deviceIndex: string,
   { newName }: { credentialID: string; newName: string }
 ) => {
-  const userToUpdate = await get(user);
+  const userToUpdate = await users.get(user);
 
   const deviceToUpdate = userToUpdate.devices[Number(deviceIndex)];
   if (!deviceToUpdate) throw new Error('Device not found');
   deviceToUpdate.name = newName;
 
-  await updateDevice(userToUpdate, deviceToUpdate);
+  await users.updateDevice(userToUpdate, deviceToUpdate);
 
   return { jwtToken: getJwtToken(userToUpdate) };
 };
 
 export const deleteDevice = async (user: User, deviceIndex: string) => {
-  const updatedUser = await removeDevice(user, Number(deviceIndex));
+  const updatedUser = await users.removeDevice(user, Number(deviceIndex));
 
   return { jwtToken: getJwtToken(updatedUser) };
 };
 
-export const deleteAccount = remove;
+export const deleteAccount = users.remove;
