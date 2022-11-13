@@ -15,7 +15,7 @@
   <p id="feedbackTxt"></p>
 
   <script type="module">
-    import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+    import { register } from './register.mjs';
 
     import { config } from './config.js';
     const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
@@ -48,57 +48,9 @@
 
     if (params.has('registerDevice')) {
       try {
-        const res = await fetch(`${config.apiUrl}/account/add-device/generate-options`, {
-          credentials: 'include',
-        });
-
-        const opts = await res.json();
-        if (!res.ok) {
-          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
-        }
-
-        const rememberMe = residentKey === 'preferred' || residentKey === 'required';
-
-        opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
-        opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
-        opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
-        opts.extensions = {
-          credProps: rememberMe,
-        };
-
-        console.log('Registration Options', JSON.stringify(opts, null, 2));
-
-        const attRes = await startRegistration(opts);
-        console.log('Registration Response', JSON.stringify(attRes, null, 2));
-        if (attRes?.clientExtensionResults?.credProps?.rk) {
-          localStorage.setItem('hasRk', true);
-        } else {
-          localStorage.removeItem('hasRk');
-        }
-
-        const verificationRes = await fetch(`${config.apiUrl}/account/add-device/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ credential: attRes }),
-          credentials: 'include',
-        });
-
-        const verificationJSON = await verificationRes.json();
-        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
-        if (!verificationRes.ok) {
-          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
-        }
-
-        if (!verificationJSON || !verificationJSON.verified) {
-          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
-        }
+        await register({ isExistingUser: true });
       } catch (err) {
-        if (err.message.includes('Failed')) {
-          feedbackTxt.innerText = 'There was an error while trying validate your account.';
-          throw err;
-        }
+        console.error(err);
       }
     }
 

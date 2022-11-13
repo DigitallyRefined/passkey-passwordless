@@ -42,10 +42,9 @@
   </section>
 
   <script type="module">
-    import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+    import { register } from './register.mjs';
 
     import { config } from './config.js';
-
     const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
 
     const accountReq = await fetch(`${config.apiUrl}/account`, {
@@ -120,60 +119,17 @@
       }
     };
 
-    const addDevice = async (requestDeviceName = false) => {
+    const addDevice = async ({ askForDeviceName = false } = {}) => {
+      const rememberMe = document.querySelector('#remember').checked;
+
       try {
-        const res = await fetch(`${config.apiUrl}/account/add-device/generate-options`, {
-          credentials: 'include',
-        });
-
-        const opts = await res.json();
-        if (!res.ok) {
-          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+        const registrationResult = await register({ isExistingUser: true, rememberMe, askForDeviceName });
+        if (!(registrationResult === 'registered' || registrationResult === 'ok')) {
+          throw new Error(registrationResult);
         }
-
-        const rememberMe = document.querySelector('#remember').checked;
-
-        opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
-        opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
-        opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
-        opts.extensions = {
-          credProps: rememberMe,
-        };
-
-        console.log('Registration Options', JSON.stringify(opts, null, 2));
-
-        const attRes = await startRegistration(opts);
-        console.log('Registration Response', JSON.stringify(attRes, null, 2));
-        if (attRes?.clientExtensionResults?.credProps?.rk) {
-          localStorage.setItem('hasRk', true);
-        } else {
-          localStorage.removeItem('hasRk');
-        }
-
-        const deviceName = requestDeviceName ? prompt('Device name') : '';
-
-        const verificationRes = await fetch(`${config.apiUrl}/account/add-device/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ credential: attRes, deviceName }),
-          credentials: 'include',
-        });
-
-        const verificationJSON = await verificationRes.json();
-        console.log('Server Response', JSON.stringify(verificationJSON, null, 2));
-        if (!verificationRes.ok) {
-          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
-        }
-
-        if (verificationJSON && verificationJSON.verified) {
-          window.location.reload();
-        } else {
-          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
-        }
+        window.location.reload();
       } catch (err) {
-        alert(`Error adding device ${err.message}`);
+        alert(`Error adding device ${err?.message}`);
       }
     };
 
@@ -199,7 +155,7 @@
       }
 
       if (accountDetails.email === newEmail) {
-        console.log('Email address has not changed');
+        alert('Email address has not changed');
         return;
       }
 
@@ -211,6 +167,11 @@
         body: JSON.stringify({ newEmail }),
         credentials: 'include',
       });
+      if (!req.ok) {
+        const err = await req.json();
+        alert(`Error updating account ${err?.code}`);
+        return;
+      }
 
       await addDevice();
       await logout();
@@ -249,7 +210,7 @@
     );
 
     document.querySelector('#deviceAdd').addEventListener('click', async (e) => {
-      await addDevice(true);
+      await addDevice({ askForDeviceName: true });
     });
 
     document.querySelector('#deleteAccount').addEventListener('click', async (e) => {

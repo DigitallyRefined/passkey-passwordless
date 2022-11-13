@@ -23,28 +23,36 @@ export const sendVerificationEmail = async (email: string, code: string, addDevi
 
 DO NOT share this link with anyone else, if you do they can take over your account.`;
 
-  if (!process.env.SMTP_HOST) {
+  const logEmail = () => {
     console.log('----------------SMTP_HOST not set----------------');
     console.log('Email verification link would have been sent to:');
     console.log(email);
     console.log(message);
     console.log('-------------------------------------------------');
-    return;
-  } else {
-    const transporter = createTransport({
-      host: process.env.SMTP_HOST,
-      port: 465,
-      auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
+  };
 
-    await transporter.sendMail({
-      from: `${config.webAuthnOptions.rpName} <${process.env.SMTP_EMAIL}>`,
-      to: email,
-      subject: `${config.webAuthnOptions.rpName} ${addDevice ? 'login' : 'registration'}`,
-      text: message,
-    });
+  if (!process.env.SMTP_HOST) {
+    logEmail();
+  } else {
+    try {
+      const transporter = createTransport({
+        host: process.env.SMTP_HOST,
+        port: 465,
+        auth: {
+          user: process.env.SMTP_EMAIL,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `${config.webAuthnOptions.rpName} <${process.env.SMTP_EMAIL}>`,
+        to: email,
+        subject: `${config.webAuthnOptions.rpName} ${addDevice ? 'login' : 'registration'}`,
+        text: message,
+      });
+    } catch (err) {
+      logEmail();
+      console.error('Error sending verification email', err);
+    }
   }
 };

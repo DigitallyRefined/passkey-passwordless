@@ -13,13 +13,10 @@
   <h1><a href="/">WebAuthn - Register</a></h1>
 
   <script type="module">
-    import {
-      browserSupportsWebAuthn,
-      startRegistration,
-    } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+    import { register } from './register.mjs';
 
     import { config } from './config.js';
-    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
+    const { residentKey } = config.webAuthnOptions;
 
     const regForm = document.querySelector('#regForm');
     const feedbackTxt = document.querySelector('#feedbackTxt');
@@ -50,75 +47,18 @@
 
       e.preventDefault();
 
-      if (!rememberMe) {
-        localStorage.removeItem('email');
-      }
-
       try {
-        const res = await fetch(`${config.apiUrl}/registration/generate-options`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        const opts = await res.json();
-        if (!res.ok) {
-          throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
-        }
-
-        opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
-        opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
-        opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
-        opts.extensions = {
-          credProps: rememberMe,
-        };
-
-        console.log('Registration Options', JSON.stringify(opts, null, 2));
-
-        const attRes = await startRegistration(opts);
-        console.log('Registration Response', JSON.stringify(attRes, null, 2));
-        if (attRes?.clientExtensionResults?.credProps?.rk) {
-          localStorage.setItem('hasRk', true);
+        const registrationResult = await register({ email, rememberMe });
+        if (registrationResult === 'registered' || registrationResult === 'ok') {
+          regForm.style.display = 'none';
+          feedbackTxt.innerText = `Check your email/console, we've sent you a login link. ${registrationResult === 'registered' ? ' Authenticator registered.' : ''}`;
         } else {
-          localStorage.removeItem('hasRk');
-        }
-
-        const verificationRes = await fetch(`${config.apiUrl}/registration/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, credential: attRes }),
-        });
-
-        const verificationJSON = await verificationRes.json();
-        if (!verificationRes.ok) {
-          throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
-        }
-
-        if (verificationJSON && verificationJSON.verified) {
-          feedbackTxt.innerText = 'Authenticator registered.';
-        } else {
-          throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
+          feedbackTxt.innerText = registrationResult;
         }
       } catch (err) {
-        console.log({ err });
-        if (err.message.includes('Failed')) {
-          feedbackTxt.innerText = err.message.includes('already registered')
-            ? 'This email address is already registered.'
-            : 'There was an error while trying to create your account.';
-          throw err;
-        }
+        feedbackTxt.innerText = 'There was an error during registration.';
+        throw err;
       }
-
-      if (rememberMe) {
-        localStorage.setItem('email', email);
-      }
-
-      regForm.style.display = 'none';
-      feedbackTxt.innerText = `Check your email, we've sent you a login link. ${feedbackTxt.innerText}`;
     });
   </script>
 

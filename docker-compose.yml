@@ -6,6 +6,7 @@ services:
       - 3000:80
     volumes:
       - ./web:/usr/share/nginx/html:ro
+      - ./nginx-mjs.conf:/etc/nginx/conf.d/mjs.conf:ro
 
   api:
     image: node:lts

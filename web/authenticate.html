@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>WebAuthn - Login</title>
+</head>
+
+<body>
+  <h1><a href="/">WebAuthn - Login</a></h1>
+
+  <script type="module">
+    import { authenticate } from './authenticate.mjs';
+
+    const loginForm = document.querySelector('#loginForm');
+    const feedbackTxt = document.querySelector('#feedbackTxt');
+
+    const rememberedEmail = localStorage.getItem('email');
+    if (rememberedEmail) {
+      document.querySelector('#email').value = rememberedEmail;
+      document.querySelector('#remember').checked = true;
+    }
+
+    /**
+     * Authentication
+     */
+    document.querySelector('#btnAuthBegin').addEventListener('click', async (e) => {
+      // Reset success/error messages
+      feedbackTxt.innerText = '';
+
+      if (!loginForm.checkValidity()) {
+        throw new Error('Fill out the form');
+      }
+
+      e.preventDefault();
+
+      const email = document.querySelector('#email').value;
+      const rememberMe = document.querySelector('#remember').checked;
+
+      try {
+        const authenticationResult = await authenticate({ email, rememberMe, emailLoginLinkOnFailure: true });
+        if (authenticationResult === 'verified') {
+          window.location = 'account.html';
+        }
+        loginForm.style.display = 'none';
+        feedbackTxt.innerText = authenticationResult;
+      } catch (err) {
+        feedbackTxt.innerText = 'There was an error while trying to login.';
+        throw err;
+      }
+    });
+  </script>
+
+  <p id="feedbackTxt"></p>
+
+  <form id="loginForm">
+    <p>
+      <label for="email">Email address:</label><br />
+      <input type="email" id="email" required placeholder="email@example.com" />
+    </p>
+
+    <p>
+      <input type="checkbox" id="remember" />
+      <label for="remember">Remember my email address</label>
+    </p>
+
+    <p>
+      <button id="btnAuthBegin">
+        <strong>🔐&nbsp;Login</strong>
+      </button>
+    </p>
+  </form>
+</body>
+
+</html>

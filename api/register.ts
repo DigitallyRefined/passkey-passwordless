@@ -28,7 +28,7 @@ export const expectedOrigin = webUrl;
  */
 export const registrationGenerateOptions = async ({ email }: User, existingUser?: User) => {
   if (!existingUser && (await users.doesUserExist({ email }))) {
-    throw new Error('Email address already registered');
+    throw new Error('Email already registered');
   }
 
   const userID = existingUser?.id || uuidv4();

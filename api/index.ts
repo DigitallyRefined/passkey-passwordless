@@ -76,9 +76,7 @@ app.post(
 
 const setLoginJwtCookie = (res: Response, jwtToken: string) => {
   res.cookie('jwt', jwtToken, {
-    // @TODO move to config
-    secure: false, // https
-    // httpOnly: true,
+    secure: config.apiUrl.startsWith('https'),
     expires: new Date(Date.now() + 24 * 3600000),
   });
 };
@@ -118,7 +116,7 @@ app.post(
   })
 );
 
-app.get(
+app.post(
   '/account/add-device/generate-options',
   asyncHandler(async (req: RequestJwt<any>, res) => {
     res.send(await addDeviceGenerateOptions(req.auth));
