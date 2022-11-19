@@ -35,10 +35,10 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
   const opts: GenerateAuthenticationOptionsOpts = {
     timeout,
     allowCredentials:
-      user?.devices.map((dev) => ({
-        id: dev.credentialID,
+      user?.devices.map((device) => ({
+        id: device.credentialID,
         type: 'public-key',
-        transports: dev.transports,
+        transports: device.transports || [],
       })) || [],
     userVerification,
     rpID,

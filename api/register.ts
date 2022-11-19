@@ -44,7 +44,7 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
       ? existingUser.devices.map((device) => ({
           id: device.credentialID,
           type: 'public-key',
-          transports: device.transports,
+          transports: device.transports || [],
         }))
       : [],
     /**
@@ -140,7 +140,7 @@ export const registrationVerify = async (
         credentialPublicKey,
         credentialID,
         counter,
-        transports: credential.transports,
+        transports: credential.transports || [],
         clientExtensionResults: credential.clientExtensionResults,
         name: deviceName,
         lastUsed: Date.now(),
