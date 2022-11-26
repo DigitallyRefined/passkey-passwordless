@@ -13,32 +13,10 @@
   <h1><a href="/">WebAuthn - Account</a></h1>
 
   <section id="account" style="visibility: hidden">
-    <p><a href="#" id="logout">↩️&nbsp;Logout</a></p>
-
-    <form id="updateAccount">
-      <p>
-        <label for="email">Email address:</label><br />
-        <input type="email" id="email" required placeholder="email@example.com" />
-      </p>
-
-      <p>
-        <input type="checkbox" id="remember" />
-        <label for="remember">Remember my email address</label>
-      </p>
-
-      <button id="btnUpdate" type="submit">
-        <strong>📝&nbsp;Update</strong>
-      </button>
-    </form>
-
     <p>
-      <label for="deviceList">Registered devices:</label>
+      <a href="#" id="logout">↩️&nbsp;Logout</a> | <a href="profile.html">✍️&nbsp;Edit Profile</a>
     </p>
-    <ul id="deviceList"></ul>
-
-    <p><a href="#" id="deviceAdd">🔐&nbsp;Add new device</a></p>
-
-    <p><a href="#" id="deleteAccount">⚠️&nbsp;Delete account</a></p>
+    <p id="success">✅ You've successfully logged in as: <span id="loggedInAs"></span></p>
   </section>
 
   <script type="module">
@@ -55,173 +33,14 @@
       window.location = '/';
     }
 
-    document.querySelector('#email').value = accountDetails.email;
-
-    // Depending on the residentKey setting allow the user to choose if they want to save their login
-    const rememberCheckbox = document.querySelector('#remember');
-    if (residentKey === 'preferred') {
-      rememberCheckbox.checked = true;
-    }
-    if (residentKey === 'required') {
-      rememberCheckbox.checked = true;
-      rememberCheckbox.disabled = true;
-    }
-
-    const getRelativeTimeSince = (pastDate) => {
-      const diff = pastDate - new Date();
-      const seconds = diff / 1000;
-      const minutes = seconds / 60;
-      const hours = minutes / 60;
-      const days = hours / 24;
-
-      const formatter = new Intl.RelativeTimeFormat(undefined, {
-        numeric: 'auto',
-      });
-
-      if (days < -1) {
-        return formatter.format(Math.floor(days), 'day');
-      }
-      if (hours < -1) {
-        return formatter.format(Math.floor(hours), 'hour');
-      }
-      if (minutes < -1) {
-        return formatter.format(Math.floor(minutes), 'minute');
-      }
-      return formatter.format(Math.floor(seconds), 'second');
-    };
-
-    const deviceList = document.querySelector('#deviceList');
-    accountDetails.devices.map(({ name, lastUsed }, idx) => {
-      const deviceLi = document.createElement('li');
-      deviceLi.id = idx;
-      deviceLi.innerText = `${name} `;
-      deviceLi.innerHTML += `<strong>Last used</strong> ${getRelativeTimeSince(lastUsed)}
-        <a href="#" class="deviceRename">✏️ Rename</a>
-        <a href="#" class="deviceRemove">❌ Remove</a>`;
-
-      deviceList.appendChild(deviceLi);
-    });
-
+    document.querySelector('#loggedInAs').innerText = accountDetails.email;
     document.querySelector('#account').style.visibility = 'visible';
 
-    const logout = async () => {
+    document.querySelector('#logout').addEventListener('click', async (e) => {
       await fetch(`${config.apiUrl}/account/logout`, {
         credentials: 'include',
       });
       window.location = '/';
-    };
-
-    const handleRes = (isOk, action) => {
-      if (isOk) {
-        location.reload();
-      } else {
-        alert(`Error ${action}`);
-      }
-    };
-
-    const addDevice = async ({ askForDeviceName = false } = {}) => {
-      const rememberMe = document.querySelector('#remember').checked;
-
-      try {
-        const registrationResult = await register({ isExistingUser: true, rememberMe, askForDeviceName });
-        if (!(registrationResult === 'registered' || registrationResult === 'ok')) {
-          throw new Error(registrationResult);
-        }
-        window.location.reload();
-      } catch (err) {
-        alert(`Error adding device ${err?.message}`);
-      }
-    };
-
-    document.querySelector('#logout').addEventListener('click', async (e) => {
-      await logout();
-    });
-
-    const form = document.querySelector('#updateAccount');
-    form.addEventListener('submit', async (e) => {
-      if (!form.checkValidity()) {
-        throw new Error('Fill out the form');
-      }
-
-      e.preventDefault();
-
-      const newEmail = document.querySelector('#email').value;
-      const rememberMe = document.querySelector('#remember').checked;
-
-      if (rememberMe) {
-        localStorage.setItem('email', newEmail);
-      } else {
-        localStorage.removeItem('email');
-      }
-
-      if (accountDetails.email === newEmail) {
-        alert('Email address has not changed');
-        return;
-      }
-
-      const req = await fetch(`${config.apiUrl}/account`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newEmail }),
-        credentials: 'include',
-      });
-      if (!req.ok) {
-        const err = await req.json();
-        alert(`Error updating account ${err?.code}`);
-        return;
-      }
-
-      await addDevice();
-      await logout();
-    });
-
-    document.querySelectorAll('.deviceRename').forEach((el) =>
-      el?.addEventListener('click', async (e) => {
-        const { id } = e.target.parentNode;
-        const newName = prompt('Rename device to', accountDetails.devices[id].name);
-        if (newName) {
-          const req = await fetch(`${config.apiUrl}/account/device/${id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ newName }),
-            credentials: 'include',
-          });
-
-          handleRes(req.ok, 'updating');
-        }
-      })
-    );
-
-    document.querySelectorAll('.deviceRemove').forEach((el) =>
-      el?.addEventListener('click', async (e) => {
-        if (confirm('Are you sure you want to remove this device?') === true) {
-          const req = await fetch(`${config.apiUrl}/account/device/${e.target.parentNode.id}`, {
-            method: 'DELETE',
-            credentials: 'include',
-          });
-
-          handleRes(req.ok, 'removing');
-        }
-      })
-    );
-
-    document.querySelector('#deviceAdd').addEventListener('click', async (e) => {
-      await addDevice({ askForDeviceName: true });
-    });
-
-    document.querySelector('#deleteAccount').addEventListener('click', async (e) => {
-      if (confirm('Are you sure you want to delete your account?') === true) {
-        const req = await fetch(`${config.apiUrl}/account`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
-
-        handleRes(req.ok, 'deleting');
-      }
     });
   </script>
 </body>

@@ -25,7 +25,6 @@ const {
  * Login (a.k.a. "Authentication")
  */
 export const authenticationGenerateOptions = async ({ email }: users.User) => {
-  // You need to know the user by this point
   const user = email ? await users.get({ email }, { requireEmailValidated: false }) : undefined;
 
   if (user?.verification.validated === false) {

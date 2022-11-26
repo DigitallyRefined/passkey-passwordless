@@ -35,6 +35,15 @@ On both Android and desktop in Chrome/Chromium based browsers navigate to "Setti
 
 ### Windows
 
+#### Chrome/Chromium (108 & later)
+
+"Settings > Auto-fill > Password Manager > Manage passkeys".
+
+#### Alternative method
+
+<details>
+<summary>Via Windows Terminal</summary>
+
 To view WebAuthn keys stored by Windows Hello, from a command prompt, run:
 
 `certutil -csp NGC -key`
@@ -44,6 +53,17 @@ WebAuthn keys have names that look like `<sid>/<guid>/FIDO_AUTHENTICATOR//<rpIdH
 You need to identify the key that you want to delete, and then to delete a WebAuthn key, from an administrator command prompt, run:
 
 `certutil -csp NGC -delkey <name>` Replacing `<name>` with the full pathname from the output of the command above.
+</details>
+
+### macOS
+
+#### Chrome/Chromium (108 & later)
+
+"Settings > Auto-fill > Password Manager > Manage passkeys". Chrome also allows users to edit the username, however this doesn't affect the login process since the resident key is identified by its public key ID.
+
+#### Safari
+
+Passkeys are managed under "System Settings > Passwords". Click the i icon > Edit and from here you can also "Delete Passkey". However, attempting to add password to a passkey System Settings will not let you save it.
 
 ### YubiKey
 
