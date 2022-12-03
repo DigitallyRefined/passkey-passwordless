@@ -14,14 +14,20 @@
 
   <script type="module">
     import { authenticate } from './authenticate.mjs';
+    import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
     const loginForm = document.querySelector('#loginForm');
     const feedbackTxt = document.querySelector('#feedbackTxt');
 
-    const rememberedEmail = localStorage.getItem('email');
-    if (rememberedEmail) {
-      document.querySelector('#email').value = rememberedEmail;
-      document.querySelector('#remember').checked = true;
+    if (await browserSupportsWebAuthnAutofill()) {
+      try {
+        const authenticationResult = await authenticate({ useBrowserAutofill: true });
+        if (authenticationResult === 'verified') {
+          window.location = 'account.html';
+        }
+      } catch (err) {
+        console.error('Autofill error', err);
+      }
     }
 
     /**
@@ -38,10 +44,9 @@
       e.preventDefault();
 
       const email = document.querySelector('#email').value;
-      const rememberMe = document.querySelector('#remember').checked;
 
       try {
-        const authenticationResult = await authenticate({ email, rememberMe, emailLoginLinkOnFailure: true });
+        const authenticationResult = await authenticate({ email, emailLoginLinkOnFailure: true });
         if (authenticationResult === 'verified') {
           window.location = 'account.html';
         }
@@ -59,12 +64,7 @@
   <form id="loginForm">
     <p>
       <label for="email">Email address:</label><br />
-      <input type="email" id="email" required placeholder="email@example.com" />
-    </p>
-
-    <p>
-      <input type="checkbox" id="remember" />
-      <label for="remember">Remember my email address</label>
+      <input type="email" id="email" required autocomplete="webauthn" placeholder="email@example.com" />
     </p>
 
     <p>

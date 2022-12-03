@@ -3,11 +3,11 @@ import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/b
 import { config } from './config.js';
 const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
 
-export const register = async ({ email, rememberMe, isExistingUser = false, askForDeviceName = false } = {}) => {
-  if (rememberMe === undefined) {
-    rememberMe = residentKey === 'preferred' || residentKey === 'required';
-  }
-
+export const register = async ({
+  email,
+  isExistingUser = false,
+  askForDeviceName = false,
+} = {}) => {
   const credentials = isExistingUser ? 'include' : 'same-origin';
 
   try {
@@ -29,10 +29,10 @@ export const register = async ({ email, rememberMe, isExistingUser = false, askF
     }
 
     opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
-    opts.authenticatorSelection.residentKey = rememberMe ? 'preferred' : 'discouraged';
+    opts.authenticatorSelection.residentKey = residentKey;
     opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
     opts.extensions = {
-      credProps: rememberMe,
+      credProps: Boolean(residentKey === 'preferred' || residentKey === 'required'),
     };
 
     console.log('Registration Options', JSON.stringify(opts, null, 2));
@@ -61,11 +61,9 @@ export const register = async ({ email, rememberMe, isExistingUser = false, askF
 
     const verificationJSON = await verificationRes.json();
     if (!verificationRes.ok) {
-      throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
-    }
-
-    if (email && rememberMe) {
-      localStorage.setItem('email', email);
+      throw new Error(
+        `Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`
+      );
     }
 
     if (verificationJSON && verificationJSON.verified) {

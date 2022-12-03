@@ -2,16 +2,12 @@ import { startAuthentication } from './node_modules/@simplewebauthn/browser/dist
 
 import { config } from './config.js';
 
-export const authenticate = async ({ email, rememberMe, emailLoginLinkOnFailure = false } = {}) => {
+export const authenticate = async ({
+  email,
+  emailLoginLinkOnFailure = false,
+  useBrowserAutofill,
+} = {}) => {
   try {
-    if (rememberMe !== undefined) {
-      if (rememberMe) {
-        localStorage.setItem('email', email);
-      } else {
-        localStorage.removeItem('email');
-      }
-    }
-
     const res = await fetch(`${config.apiUrl}/authentication/generate-options`, {
       method: 'POST',
       headers: {
@@ -20,7 +16,6 @@ export const authenticate = async ({ email, rememberMe, emailLoginLinkOnFailure 
       ...(email && { body: JSON.stringify({ email }) }),
     });
 
-    let asseRes;
     const opts = await res.json();
     console.log('Authentication Options', JSON.stringify(opts, null, 2));
 
@@ -28,7 +23,7 @@ export const authenticate = async ({ email, rememberMe, emailLoginLinkOnFailure 
       throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
     }
 
-    asseRes = await startAuthentication(opts);
+    const asseRes = await startAuthentication(opts, useBrowserAutofill);
     console.log('Authentication Response', JSON.stringify(asseRes, null, 2));
 
     const verificationRes = await fetch(`${config.apiUrl}/authentication/verify`, {

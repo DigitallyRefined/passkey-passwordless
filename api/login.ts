@@ -86,6 +86,10 @@ export const authenticationVerify = async ({
     throw new Error('Unable to verify login');
   }
 
+  if (!expectedChallenge) {
+    throw new Error('Unable to verify login');
+  }
+
   let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
   const bodyCredIDBuffer = base64url.toBuffer(credential.rawId);
   // "Query the DB" here for an authenticator matching `credentialID`

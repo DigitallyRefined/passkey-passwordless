@@ -21,16 +21,6 @@
     const regForm = document.querySelector('#regForm');
     const feedbackTxt = document.querySelector('#feedbackTxt');
 
-    // Depending on the residentKey setting allow the user to choose if they want to save their login
-    const rememberCheckbox = document.querySelector('#remember');
-    if (residentKey === 'preferred') {
-      rememberCheckbox.checked = true;
-    }
-    if (residentKey === 'required') {
-      rememberCheckbox.checked = true;
-      rememberCheckbox.disabled = true;
-    }
-
     /**
      * Registration
      */
@@ -39,7 +29,6 @@
       feedbackTxt.innerText = '';
 
       const email = document.querySelector('#email').value;
-      const rememberMe = document.querySelector('#remember').checked;
 
       if (!regForm.checkValidity()) {
         throw new Error('Fill out the form');
@@ -48,10 +37,11 @@
       e.preventDefault();
 
       try {
-        const registrationResult = await register({ email, rememberMe });
+        const registrationResult = await register({ email });
         if (registrationResult === 'registered' || registrationResult === 'ok') {
           regForm.style.display = 'none';
-          feedbackTxt.innerText = `Check your email/console, we've sent you a login link. ${registrationResult === 'registered' ? ' Authenticator registered.' : ''}`;
+          feedbackTxt.innerText = `Check your email/console, we've sent you a login link. ${registrationResult === 'registered' ? ' Authenticator registered.' : ''
+            }`;
         } else {
           feedbackTxt.innerText = registrationResult;
         }
@@ -68,11 +58,6 @@
     <p>
       <label for="email">Email address:</label><br />
       <input type="email" id="email" required placeholder="email@example.com" />
-    </p>
-
-    <p>
-      <input type="checkbox" id="remember" />
-      <label for="remember">Remember my email address</label>
     </p>
 
     <button id="btnRegBegin" type="submit">

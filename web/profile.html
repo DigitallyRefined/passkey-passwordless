@@ -23,11 +23,6 @@
         <input type="email" id="email" required placeholder="email@example.com" />
       </p>
 
-      <p>
-        <input type="checkbox" id="remember" />
-        <label for="remember">Remember my email address</label>
-      </p>
-
       <button id="btnUpdate" type="submit">
         <strong>📝&nbsp;Update</strong>
       </button>
@@ -58,16 +53,6 @@
     }
 
     document.querySelector('#email').value = accountDetails.email;
-
-    // Depending on the residentKey setting allow the user to choose if they want to save their login
-    const rememberCheckbox = document.querySelector('#remember');
-    if (residentKey === 'preferred') {
-      rememberCheckbox.checked = true;
-    }
-    if (residentKey === 'required') {
-      rememberCheckbox.checked = true;
-      rememberCheckbox.disabled = true;
-    }
 
     const getRelativeTimeSince = (pastDate) => {
       const diff = pastDate - new Date();
@@ -122,14 +107,8 @@
     };
 
     const addDevice = async ({ askForDeviceName = false } = {}) => {
-      const rememberMe = document.querySelector('#remember').checked;
-
       try {
-        const registrationResult = await register({
-          isExistingUser: true,
-          rememberMe,
-          askForDeviceName,
-        });
+        const registrationResult = await register({ isExistingUser: true, askForDeviceName });
         if (!(registrationResult === 'registered' || registrationResult === 'ok')) {
           throw new Error(registrationResult);
         }
@@ -152,13 +131,6 @@
       e.preventDefault();
 
       const newEmail = document.querySelector('#email').value;
-      const rememberMe = document.querySelector('#remember').checked;
-
-      if (rememberMe) {
-        localStorage.setItem('email', newEmail);
-      } else {
-        localStorage.removeItem('email');
-      }
 
       if (accountDetails.email === newEmail) {
         alert('Email address has not changed');
