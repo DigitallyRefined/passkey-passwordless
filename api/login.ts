@@ -76,8 +76,12 @@ export const authenticationVerify = async ({
   } else if (credential.response.userHandle) {
     user = await users.get({ id: credential.response.userHandle });
 
-    const { challenge } = JSON.parse(Buffer.from(credential.response.clientDataJSON, 'base64') as any as string);
-    if (await anonymousChallenges.exists(challenge)) expectedChallenge = challenge;
+    const { challenge } = JSON.parse(
+      Buffer.from(credential.response.clientDataJSON, 'base64') as any as string
+    );
+    if (await anonymousChallenges.exists(challenge)) {
+      expectedChallenge = challenge;
+    }
   } else {
     throw new Error('Unable to verify login');
   }
@@ -116,5 +120,9 @@ export const authenticationVerify = async ({
     await users.updateDevice({ email: user.email }, dbAuthenticator);
   }
 
-  return { verified, clientExtensionResults: dbAuthenticator.clientExtensionResults, jwtToken: getJwtToken(user) };
+  return {
+    verified,
+    clientExtensionResults: dbAuthenticator.clientExtensionResults,
+    jwtToken: getJwtToken(user),
+  };
 };

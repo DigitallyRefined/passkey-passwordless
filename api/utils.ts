@@ -13,7 +13,9 @@ export const getDeviceNameFromPlatform = (userAgent?: string) => {
 };
 
 export const sendVerificationEmail = async (email: string, code: string, addDevice = false) => {
-  const verificationUrl = `${config.webUrl}/validateEmail.html?code=${code}${addDevice ? '&registerDevice' : ''}`;
+  const verificationUrl = `${config.webUrl}/validateEmail.html?code=${code}${
+    addDevice ? '&registerDevice' : ''
+  }`;
 
   const message = `To ${addDevice ? 'login to' : 'complete your registration on'} ${
     config.webAuthnOptions.rpName

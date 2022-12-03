@@ -8,8 +8,8 @@
     "postinstall": "cd web && npm install"
   },
   "devDependencies": {
-    "@types/node": "^18.11.9",
-    "typescript": "^4.8.4"
+    "@types/node": "^18.11.10",
+    "typescript": "^4.9.3"
   },
   "repository": {
     "type": "git",

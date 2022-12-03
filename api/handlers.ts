@@ -1,10 +1,4 @@
-import {
-  ErrorRequestHandler,
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-} from 'express';
+import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err.stack);

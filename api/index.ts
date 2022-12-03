@@ -47,7 +47,9 @@ app.post(
 app.post(
   '/registration/verify',
   asyncHandler(async (req, res) => {
-    res.send(await registrationVerify(req.body, getDeviceNameFromPlatform(req.headers['user-agent'])));
+    res.send(
+      await registrationVerify(req.body, getDeviceNameFromPlatform(req.headers['user-agent']))
+    );
   })
 );
 

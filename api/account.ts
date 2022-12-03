@@ -62,9 +62,14 @@ export const updateAccount = async (user: User, { newEmail }: { newEmail: string
   return { jwtToken: getJwtToken(userToUpdate) };
 };
 
-export const addDeviceGenerateOptions = async (user: User) => registrationGenerateOptions(user, await users.get(user));
+export const addDeviceGenerateOptions = async (user: User) =>
+  registrationGenerateOptions(user, await users.get(user));
 
-export const addDeviceVerify = async (user: User, credential: RegistrationCredentialJSON, deviceName: string) => {
+export const addDeviceVerify = async (
+  user: User,
+  credential: RegistrationCredentialJSON,
+  deviceName: string
+) => {
   await registrationVerify({ credential, email: user.email }, deviceName, true);
   return { jwtToken: getJwtToken(await users.get(user)) };
 };

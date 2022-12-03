@@ -11,11 +11,23 @@ import type { RegistrationCredentialJSON } from '@simplewebauthn/typescript-type
 import * as users from './db/users';
 import type { User } from './db/users';
 import { config } from './config';
-import { getTenMinutesFromNow as tenMinutesFromNow, getWebAuthnValidUntil, sendVerificationEmail } from './utils';
+import {
+  getTenMinutesFromNow as tenMinutesFromNow,
+  getWebAuthnValidUntil,
+  sendVerificationEmail,
+} from './utils';
 
 const {
   webUrl,
-  webAuthnOptions: { rpID, rpName, timeout, attestationType, authenticatorAttachment, residentKey, userVerification },
+  webAuthnOptions: {
+    rpID,
+    rpName,
+    timeout,
+    attestationType,
+    authenticatorAttachment,
+    residentKey,
+    userVerification,
+  },
 } = config;
 
 // This value is set at the bottom of page as part of server initialization (the empty string is

@@ -42,7 +42,9 @@ export const authenticate = async ({ email, rememberMe, emailLoginLinkOnFailure 
 
     const verificationJSON = await verificationRes.json();
     if (!verificationRes.ok) {
-      throw new Error(`Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`);
+      throw new Error(
+        `Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`
+      );
     }
 
     if (verificationJSON?.clientExtensionResults?.credProps?.rk) {

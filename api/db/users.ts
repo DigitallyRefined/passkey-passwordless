@@ -53,7 +53,8 @@ const byIdOrEmail = ({ id, email }: EmailOrId) => ({
   ...(email ? { email } : {}),
 });
 
-export const doesUserExist = async (user: EmailOrId) => (await users.findOne(byIdOrEmail(user))) !== null;
+export const doesUserExist = async (user: EmailOrId) =>
+  (await users.findOne(byIdOrEmail(user))) !== null;
 
 const convertUser = (user: User | null): User => {
   if (!user) {
@@ -72,7 +73,10 @@ const convertUser = (user: User | null): User => {
 
 export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}) =>
   convertUser(
-    await users.findOne({ ...byIdOrEmail(user), ...(requireEmailValidated && { 'verification.validated': true }) })
+    await users.findOne({
+      ...byIdOrEmail(user),
+      ...(requireEmailValidated && { 'verification.validated': true }),
+    })
   );
 
 export const validateEmailCode = async (code: string) => {
@@ -98,7 +102,8 @@ export const getForChallenge = async (user: EmailOrId, requireEmailValidated = t
     })
   );
 
-export const replace = async (user: EmailOrId, update: User) => users.findOneAndReplace(byIdOrEmail(user), update);
+export const replace = async (user: EmailOrId, update: User) =>
+  users.findOneAndReplace(byIdOrEmail(user), update);
 
 export const updateDevice = async (user: EmailOrId, device: AuthenticatorDevice) =>
   users.findOneAndUpdate(
