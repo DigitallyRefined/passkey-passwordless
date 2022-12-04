@@ -72,6 +72,7 @@ export const authenticate = async ({
       );
     }
   } catch (err) {
+    localStorage.removeItem('hasResidentKey');
     const userId = err.details?.response?.userHandle;
     if (
       (email || userId) &&

@@ -72,6 +72,7 @@ export const register = async ({
       throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
     }
   } catch (err) {
+    localStorage.removeItem('hasResidentKey');
     if (err.message.includes('Failed')) {
       return err.message.includes('Email already registered')
         ? 'This email address is already registered.'
