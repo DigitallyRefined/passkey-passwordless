@@ -14,7 +14,7 @@ import * as anonymousChallenges from './db/anonymousChallenges';
 
 import { config } from './config';
 import { getWebAuthnValidUntil } from './utils';
-import { getJwtToken, sendValidationEmail } from './account';
+import { getJwtToken } from './account';
 
 const {
   webUrl,
@@ -64,8 +64,7 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
 export const authenticationVerify = async ({
   email,
   credential,
-}: {
-  email: string;
+}: users.User & {
   credential: AuthenticationCredentialJSON;
 }) => {
   let user: users.User | undefined;

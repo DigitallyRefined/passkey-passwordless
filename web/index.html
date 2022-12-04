@@ -19,6 +19,12 @@
   </form>
   <p></p>
 
+  <form action="authenticate.html" id="btnAuthBegin">
+    <button type="submit">
+      <strong>🔐&nbsp;Login</strong>
+    </button>
+  </form>
+
   <script type="module">
     import { authenticate } from './authenticate.mjs';
 
@@ -46,12 +52,6 @@
       window.location = e.target.action;
     });
   </script>
-
-  <form action="authenticate.html" id="btnAuthBegin">
-    <button type="submit">
-      <strong>🔐&nbsp;Login</strong>
-    </button>
-  </form>
 </body>
 
 </html>

@@ -16,24 +16,53 @@
     import { authenticate } from './authenticate.mjs';
     import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
-    const loginForm = document.querySelector('#loginForm');
-    const feedbackTxt = document.querySelector('#feedbackTxt');
-
+    /**
+     * Authentication via autofill selection & passkey
+     */
     if (await browserSupportsWebAuthnAutofill()) {
       try {
-        const authenticationResult = await authenticate({ useBrowserAutofill: true });
+        const authenticationResult = await authenticate({
+          useBrowserAutofill: true,
+          emailLoginLinkOnFailure: true,
+        });
         if (authenticationResult === 'verified') {
           window.location = 'account.html';
+        } else {
+          loginForm.style.display = 'none';
+          feedbackTxt.innerText = authenticationResult;
         }
       } catch (err) {
         console.error('Autofill error', err);
       }
     }
+  </script>
+
+  <p id="feedbackTxt"></p>
+
+  <form id="loginForm">
+    <p>
+      <label for="email">Email address:</label><br />
+      <input type="email" id="email" required autocomplete="webauthn" placeholder="email@example.com" />
+    </p>
+
+    <p>
+      <button id="btnAuthBegin" type="submit">
+        <strong>🔐&nbsp;Login</strong>
+      </button>
+    </p>
+  </form>
+
+  <script type="module">
+    import { authenticate } from './authenticate.mjs';
+    import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+
+    const loginForm = document.querySelector('#loginForm');
+    const feedbackTxt = document.querySelector('#feedbackTxt');
 
     /**
-     * Authentication
+     * Authentication via email & passkey
      */
-    document.querySelector('#btnAuthBegin').addEventListener('click', async (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       // Reset success/error messages
       feedbackTxt.innerText = '';
 
@@ -49,30 +78,16 @@
         const authenticationResult = await authenticate({ email, emailLoginLinkOnFailure: true });
         if (authenticationResult === 'verified') {
           window.location = 'account.html';
+        } else {
+          loginForm.style.display = 'none';
+          feedbackTxt.innerText = authenticationResult;
         }
-        loginForm.style.display = 'none';
-        feedbackTxt.innerText = authenticationResult;
       } catch (err) {
         feedbackTxt.innerText = 'There was an error while trying to login.';
         throw err;
       }
     });
   </script>
-
-  <p id="feedbackTxt"></p>
-
-  <form id="loginForm">
-    <p>
-      <label for="email">Email address:</label><br />
-      <input type="email" id="email" required autocomplete="webauthn" placeholder="email@example.com" />
-    </p>
-
-    <p>
-      <button id="btnAuthBegin">
-        <strong>🔐&nbsp;Login</strong>
-      </button>
-    </p>
-  </form>
 </body>
 
 </html>

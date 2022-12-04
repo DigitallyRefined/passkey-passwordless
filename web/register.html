@@ -12,6 +12,19 @@
 <body>
   <h1><a href="/">WebAuthn - Register</a></h1>
 
+  <p id="feedbackTxt"></p>
+
+  <form id="regForm">
+    <p>
+      <label for="email">Email address:</label><br />
+      <input type="email" id="email" required placeholder="email@example.com" />
+    </p>
+
+    <button id="btnRegBegin" type="submit">
+      <strong>🔐&nbsp;Register</strong>
+    </button>
+  </form>
+
   <script type="module">
     import { register } from './register.mjs';
 
@@ -24,7 +37,7 @@
     /**
      * Registration
      */
-    document.querySelector('#regForm').addEventListener('submit', async (e) => {
+    regForm.addEventListener('submit', async (e) => {
       // Reset success/error messages
       feedbackTxt.innerText = '';
 
@@ -51,19 +64,6 @@
       }
     });
   </script>
-
-  <p id="feedbackTxt"></p>
-
-  <form id="regForm">
-    <p>
-      <label for="email">Email address:</label><br />
-      <input type="email" id="email" required placeholder="email@example.com" />
-    </p>
-
-    <button id="btnRegBegin" type="submit">
-      <strong>🔐&nbsp;Register</strong>
-    </button>
-  </form>
 </body>
 
 </html>

@@ -31,13 +31,16 @@ export const getAccount = async (user: User) => ({
   devices: user.devices,
 });
 
-export const sendValidationEmail = async ({ email }: User) => {
-  const userToUpdate = await users.get({ email }, { requireEmailValidated: false });
+export const sendValidationEmail = async ({ id, email }: User) => {
+  const userToUpdate = await users.get(id ? { id } : { email }, { requireEmailValidated: false });
+  if (!userToUpdate || (!id && !email)) {
+    throw new Error('User not found');
+  }
   const verificationCode = uuidv4();
   userToUpdate.verification.validUntil = getTenMinutesFromNow();
   userToUpdate.verification.data = verificationCode;
-  await users.replace({ email }, userToUpdate);
-  sendVerificationEmail(email, verificationCode, true);
+  await users.replace({ email: userToUpdate.email }, userToUpdate);
+  sendVerificationEmail(userToUpdate.email, verificationCode, true);
 };
 
 export const emailVerify = async (code: string) => {

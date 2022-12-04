@@ -1,5 +1,4 @@
 import { AuthenticatorDevice } from '@simplewebauthn/typescript-types';
-import { FindOneAndUpdateOptions } from 'mongodb';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
 export interface AuthenticatorDeviceDetails extends AuthenticatorDevice {
@@ -71,13 +70,15 @@ const convertUser = (user: User | null): User => {
   };
 };
 
-export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}) =>
-  convertUser(
-    await users.findOne({
-      ...byIdOrEmail(user),
-      ...(requireEmailValidated && { 'verification.validated': true }),
-    })
-  );
+export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}) => {
+  const convertedUser = convertUser(await users.findOne({ ...byIdOrEmail(user) }));
+
+  if (requireEmailValidated && convertedUser?.verification.validated === false) {
+    throw new Error('Account not verified');
+  }
+
+  return convertedUser;
+};
 
 export const validateEmailCode = async (code: string) => {
   const now = Date.now();
@@ -93,14 +94,20 @@ export const validateEmailCode = async (code: string) => {
   return updated.value;
 };
 
-export const getForChallenge = async (user: EmailOrId, requireEmailValidated = true) =>
-  convertUser(
+export const getForChallenge = async (user: EmailOrId, requireEmailValidated = true) => {
+  const convertedUser = convertUser(
     await users.findOne({
       ...byIdOrEmail(user),
-      'verification.validated': requireEmailValidated,
       'challenge.validUntil': { $gt: Date.now() },
     })
   );
+
+  if (requireEmailValidated && convertedUser?.verification.validated === false) {
+    throw new Error('Account not verified');
+  }
+
+  return convertedUser;
+};
 
 export const replace = async (user: EmailOrId, update: User) =>
   users.findOneAndReplace(byIdOrEmail(user), update);

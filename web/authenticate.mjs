@@ -2,6 +2,14 @@ import { startAuthentication } from './node_modules/@simplewebauthn/browser/dist
 
 import { config } from './config.js';
 
+class AuthenticationError extends Error {
+  constructor(message, details) {
+    super(message);
+    this.name = 'AuthenticationError';
+    this.details = details;
+  }
+}
+
 export const authenticate = async ({
   email,
   emailLoginLinkOnFailure = false,
@@ -20,7 +28,7 @@ export const authenticate = async ({
     console.log('Authentication Options', JSON.stringify(opts, null, 2));
 
     if (!res.ok) {
-      throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+      throw new AuthenticationError(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
     }
 
     const asseRes = await startAuthentication(opts, useBrowserAutofill);
@@ -37,8 +45,9 @@ export const authenticate = async ({
 
     const verificationJSON = await verificationRes.json();
     if (!verificationRes.ok) {
-      throw new Error(
-        `Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`
+      throw new AuthenticationError(
+        `Failed: ${verificationRes.statusText} ${JSON.stringify(verificationJSON, null, 2)}`,
+        asseRes
       );
     }
 
@@ -51,11 +60,14 @@ export const authenticate = async ({
     if (verificationJSON && verificationJSON.verified) {
       return 'verified';
     } else {
-      throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
+      throw new AuthenticationError(
+        `Verification error: ${JSON.stringify(verificationJSON, null, 2)}`
+      );
     }
   } catch (err) {
+    const userId = err.details?.response?.userHandle;
     if (
-      email &&
+      (email || userId) &&
       emailLoginLinkOnFailure &&
       (err.name === 'NotAllowedError' ||
         err.message?.includes('Authenticator not found') ||
@@ -70,14 +82,15 @@ export const authenticate = async ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(userId ? { id: userId } : { email }),
       });
+      console.log('Send email validation response', await sendValidationReq.text());
       return sendValidationReq.ok
         ? "Check your email/console, we've sent you a login link."
         : 'There was an error while trying to send you a validation email';
     } else if (err.message?.includes('Failed')) {
       return err.message?.includes('User not found')
-        ? 'Account not found or email address has not been verified.'
+        ? `No account was found matching this ${email ? 'email address' : 'passkey'}.`
         : 'There was an error while trying to login.';
     }
     throw err;
