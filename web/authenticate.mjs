@@ -1,4 +1,7 @@
-import { startAuthentication } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+import {
+  browserSupportsWebAuthn,
+  startAuthentication,
+} from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
 import { config } from './config.js';
 
@@ -16,6 +19,10 @@ export const authenticate = async ({
   useBrowserAutofill,
 } = {}) => {
   try {
+    if (!browserSupportsWebAuthn()) {
+      throw new AuthenticationError('Browser not supported falling back to email login');
+    }
+
     const res = await fetch(`${config.apiUrl}/authentication/generate-options`, {
       method: 'POST',
       headers: {
@@ -73,6 +80,7 @@ export const authenticate = async ({
         err.message?.includes('Authenticator not found') ||
         err.message?.includes('Account not verified') ||
         err.message?.includes('not supported') ||
+        err.message?.includes('Not implemented') ||
         err.includes?.('Cancelling'))
     ) {
       console.error(err);
@@ -82,7 +90,7 @@ export const authenticate = async ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userId ? { id: userId } : { email }),
+        body: JSON.stringify(email ? { email } : { id: userId }),
       });
       console.log('Send email validation response', await sendValidationReq.text());
       return sendValidationReq.ok
