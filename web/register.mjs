@@ -39,7 +39,10 @@ export const register = async ({
 
     const attRes = await startRegistration(opts);
     console.log('Registration Response', JSON.stringify(attRes, null, 2));
-    if (attRes?.clientExtensionResults?.credProps?.rk) {
+    if (
+      attRes?.authenticatorAttachment === 'platform' ||
+      attRes?.clientExtensionResults?.credProps?.rk
+    ) {
       localStorage.setItem('hasResidentKey', true);
     } else {
       localStorage.removeItem('hasResidentKey');

@@ -58,7 +58,10 @@ export const authenticate = async ({
       );
     }
 
-    if (verificationJSON?.clientExtensionResults?.credProps?.rk) {
+    if (
+      asseRes.authenticatorAttachment === 'platform' ||
+      verificationJSON?.clientExtensionResults?.credProps?.rk
+    ) {
       localStorage.setItem('hasResidentKey', true);
     } else {
       localStorage.removeItem('hasResidentKey');
