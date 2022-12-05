@@ -74,16 +74,11 @@ export const authenticate = async ({
   } catch (err) {
     localStorage.removeItem('hasResidentKey');
     const userId = err.details?.response?.userHandle;
-    if (
-      (email || userId) &&
-      emailLoginLinkOnFailure &&
-      (err.name === 'NotAllowedError' ||
-        err.message?.includes('Authenticator not found') ||
-        err.message?.includes('Account not verified') ||
-        err.message?.includes('not supported') ||
-        err.message?.includes('Not implemented') ||
-        err.includes?.('Cancelling'))
-    ) {
+    if (err.message?.includes('Failed')) {
+      return err.message?.includes('User not found')
+        ? `No account was found matching this ${email ? 'email address' : 'passkey'}.`
+        : 'There was an error while trying to login.';
+    } else if (emailLoginLinkOnFailure && (email || userId)) {
       console.error(err);
 
       const sendValidationReq = await fetch(`${config.apiUrl}/email/send/validation`, {
@@ -97,10 +92,6 @@ export const authenticate = async ({
       return sendValidationReq.ok
         ? "Check your email/console, we've sent you a login link."
         : 'There was an error while trying to send you a validation email';
-    } else if (err.message?.includes('Failed')) {
-      return err.message?.includes('User not found')
-        ? `No account was found matching this ${email ? 'email address' : 'passkey'}.`
-        : 'There was an error while trying to login.';
     }
     throw err;
   }
