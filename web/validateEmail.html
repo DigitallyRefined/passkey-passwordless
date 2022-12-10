@@ -41,7 +41,7 @@
       }
     } catch (err) {
       feedbackTxt.innerText = err.message.includes('code not found')
-        ? 'Verification code not found or you email has already been confirmed.'
+        ? 'Verification code not found, has expired or you email has already been confirmed.'
         : 'There was an error while trying validate your account.';
       throw err;
     }

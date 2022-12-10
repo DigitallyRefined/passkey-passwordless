@@ -77,10 +77,8 @@ export const authenticate = async ({
   } catch (err) {
     localStorage.removeItem('hasResidentKey');
     const userId = err.details?.response?.userHandle;
-    if (err.message?.includes('Failed')) {
-      return err.message?.includes('User not found')
-        ? `No account was found matching this ${email ? 'email address' : 'passkey'}.`
-        : 'There was an error while trying to login.';
+    if (err.message?.includes('User not found')) {
+      return `No account was found matching this ${email ? 'email address' : 'passkey'}.`;
     } else if (emailLoginLinkOnFailure && (email || userId)) {
       console.error(err);
 

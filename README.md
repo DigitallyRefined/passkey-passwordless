@@ -17,11 +17,49 @@ Prerequisites: [Node](https://nodejs.org/) and [Docker](https://www.docker.com/)
 
 1. http://localhost:3000 to register and login
 2. Check the console output for the email confirmation links
-3. Open "DevTools > Console > More tools (hamburger menu) > WebAuthn > Enable virtual authenticator environment" to try out different key types
+3. In Chrome, open "DevTools > Console > More tools (hamburger menu) > WebAuthn > Enable virtual authenticator environment" to try out different key types
 4. http://localhost:8081 to check the user database
 5. Attempt to login from different devices, desktop vs. mobile
 6. Reset database via `npm run reset:db`
 7. Optionally set the SMTP settings in `apps.env` to send email and change `config.ts` to match your domain and security requirements
+
+## Browser support
+
+|      OS/Browser |  Android  |  Windows  |   iOS   |   macOS  | Linux  |
+| --------------: | :-------: | :-------: | :-----: | :------: | :----: |
+|          Chrome |   🐾🔑    |  🐾📲🔑  |    🛃   | 🐾📲🔑  |  📲🔑 |
+|          Safari |    ⛔     |    ⛔     |   🐾🔑 | 🐾📲🔑  |   ⛔   |
+|            Edge |   🐾🔑    |  🐾📲🔑  |    🛃   | 🐾📲🔑  |   🔑   |
+|         Firefox |   🐾🔑    |  🐾📲🔑  |    🛃   |    🔑   |   🔑   |
+| Chromium based* |    ⤵️     |   📲🔑    |   🛃   |  📲🔑   |  📲🔑  |
+
+Key:
+
+- 🐾 Platform authentication: such biometric login e.g. fingerprint, face unlock or PIN etc.
+- 📲 Roaming authentication: such as a mobile phone that can be setup via a QR to send a login confirmation prompt
+- 🔑 Security key: such as a YubiKey
+- 🛃 Assumed to work, as iOS prevents browser vendors from using their own engine (uses Safari under the hood)
+- ⛔ Not available
+
+### Notes on browsers tested
+
+See [Can I use WebAuthn?](https://caniuse.com/?search=WebAuthn) for a full/up to date breakdown.
+
+#### Chrome 108
+
+Successfully registers and logs in, prompting for fingerprint (even if not signed into Chrome). Same for Microsoft Edge.
+
+#### Safari 16.1
+
+Allows touch ID only if iCloud is signed in, otherwise falls back to mobile QR code or security key.
+
+#### Firefox 107
+
+On Windows Firefox supports Windows Hello (biometric login). On Android resident keys are not used, but users can still register and login with on device U2F. While on other platforms Firefox only allows security keys to used for registration and login.
+
+#### **\*** ⤵️ Other Chromium based browsers
+
+Different Chromium based browsers may have different WebAuthn implementation. Some may have full support (such as Brave & Samsung Internet), partial or no support for WebAuthn.
 
 ## Managing WebAuthn keys
 
@@ -76,6 +114,6 @@ Older YubiKeys (such as [U2F keys](https://support.yubico.com/hc/en-us/articles/
 - [WebAuthn.io](https://webauthn.io/)
 - [FIDO2 - FIDO Alliance](https://fidoalliance.org/fido2/)
 - [SimpleWebAuthn Project](https://github.com/MasterKale/SimpleWebAuthn)
-- [Can I use Search WebAuthn? - Browser support](https://caniuse.com/?search=webauthn)
+- [Can I use WebAuthn? - Browser support](https://caniuse.com/?search=WebAuthn)
 - [Google - Build your first WebAuthn app](https://developers.google.com/codelabs/webauthn-reauth)
 - [Bringing passkeys to Android & Chrome](https://android-developers.googleblog.com/2022/10/bringing-passkeys-to-android-and-chrome.html)
