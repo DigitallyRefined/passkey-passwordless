@@ -14,6 +14,12 @@
 
   <p id="feedbackTxt"></p>
 
+  <section class="alert alertInfo" style="display: none;">
+    <div class="alertIcon">ℹ️</div>
+    <div class="alertContent">You may be prompted for your fingerprint, face ID or PIN. This is used locally to secure
+      your login.</div>
+  </section>
+
   <script type="module">
     import { register } from './register.mjs';
 
@@ -47,6 +53,7 @@
     }
 
     if (params.has('registerDevice')) {
+      document.querySelector('.alert').style.display = 'flex';
       try {
         await register({ isExistingUser: true });
       } catch (err) {

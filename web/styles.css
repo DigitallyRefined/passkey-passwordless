@@ -6,6 +6,7 @@
   --button: white;
   --button-active: #eeeeee;
   --button-hover: #efefef;
+  --alert-info-background: rgb(1 67 97 / 37%);
 }
 
 * {
@@ -19,7 +20,7 @@ body {
   color: var(--text);
 }
 
-h1 > a {
+h1>a {
   font-size: 1.6rem;
   text-decoration: none;
 }
@@ -53,6 +54,30 @@ label {
   font-weight: bold;
 }
 
+.alert {
+  background: var(--button-hover);
+  color: var(--text);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  width: 17rem;
+  display: flex;
+  margin-top: 1rem;
+}
+
+.alertIcon {
+  margin-right: 12px;
+  padding: 7px 0px;
+  display: flex;
+}
+
+.alertContent {
+  font-size: 0.9rem;
+}
+
+.alertInfo {
+  background: var(--alert-info-background);
+}
+
 /* Desktop Styles */
 @media (min-width: 75rem) {
   * {
@@ -69,5 +94,6 @@ label {
     --button: #373e47;
     --button-active: #eeeeee;
     --button-hover: #444c56;
+    --alert-info-background: rgb(1, 67, 97);
   }
 }
