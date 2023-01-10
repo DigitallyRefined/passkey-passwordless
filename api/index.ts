@@ -130,7 +130,7 @@ app.post(
   asyncHandler(async (req: RequestJwt<any>, res) => {
     const updatedUser = await addDeviceVerify(
       req.auth,
-      req.body.credential,
+      req.body.registrationBody,
       req.body.deviceName || getDeviceNameFromPlatform(req.headers['user-agent'])
     );
     setLoginJwtCookie(res, updatedUser.jwtToken);

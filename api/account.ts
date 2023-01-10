@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import { RegistrationResponseJSON } from '@simplewebauthn/typescript-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { JWT_SECRET } from './index';
@@ -16,7 +16,7 @@ export const getJwtToken = (user: User | null) =>
           id: user.id,
           email: user.email,
           devices: user.devices.map((device) => ({
-            credentialID: device.credentialID.toString('base64'),
+            credentialID: device.credentialID,
             name: device.name,
             lastUsed: device.lastUsed,
           })),
@@ -70,10 +70,10 @@ export const addDeviceGenerateOptions = async (user: User) =>
 
 export const addDeviceVerify = async (
   user: User,
-  credential: RegistrationCredentialJSON,
+  registrationBody: RegistrationResponseJSON,
   deviceName: string
 ) => {
-  await registrationVerify({ credential, email: user.email }, deviceName, true);
+  await registrationVerify({ registrationBody, email: user.email }, deviceName, true);
   return { jwtToken: getJwtToken(await users.get(user)) };
 };
 

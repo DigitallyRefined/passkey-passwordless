@@ -58,7 +58,7 @@ export const register = async ({
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, credential: attRes, deviceName }),
+      body: JSON.stringify({ email, registrationBody: attRes, deviceName }),
       credentials,
     });
 

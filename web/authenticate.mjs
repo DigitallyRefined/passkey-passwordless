@@ -46,7 +46,7 @@ export const authenticate = async ({
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, credential: asseRes }),
+      body: JSON.stringify({ email, authenticationBody: asseRes }),
       credentials: 'include',
     });
 

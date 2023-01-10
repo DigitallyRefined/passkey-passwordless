@@ -6,7 +6,7 @@ import type {
 } from '@simplewebauthn/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import type { RegistrationResponseJSON } from '@simplewebauthn/typescript-types';
 
 import * as users from './db/users';
 import type { User } from './db/users';
@@ -16,6 +16,7 @@ import {
   getWebAuthnValidUntil,
   sendVerificationEmail,
 } from './utils';
+import { isoUint8Array } from '@simplewebauthn/server/helpers';
 
 const {
   webUrl,
@@ -114,10 +115,10 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
 export const registrationVerify = async (
   {
     email,
-    credential,
+    registrationBody,
   }: {
     email: string;
-    credential: RegistrationCredentialJSON;
+    registrationBody: RegistrationResponseJSON;
   },
   deviceName: string,
   requireEmailValidated = false
@@ -129,7 +130,7 @@ export const registrationVerify = async (
   let verification: VerifiedRegistrationResponse;
 
   const opts: VerifyRegistrationResponseOpts = {
-    credential,
+    response: registrationBody,
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin,
     expectedRPID: rpID,
@@ -142,7 +143,9 @@ export const registrationVerify = async (
   if (verified && registrationInfo) {
     const { credentialPublicKey, credentialID, counter } = registrationInfo;
 
-    const existingDevice = user.devices.find((device) => device.credentialID.equals(credentialID));
+    const existingDevice = user.devices.find((device) =>
+      isoUint8Array.areEqual(device.credentialID, credentialID)
+    );
 
     if (!existingDevice) {
       /**
@@ -152,8 +155,8 @@ export const registrationVerify = async (
         credentialPublicKey,
         credentialID,
         counter,
-        transports: credential.transports || [],
-        clientExtensionResults: credential.clientExtensionResults,
+        transports: registrationBody.response.transports || [],
+        clientExtensionResults: registrationBody.clientExtensionResults,
         name: deviceName,
         lastUsed: Date.now(),
       };

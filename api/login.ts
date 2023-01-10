@@ -5,9 +5,10 @@ import {
   verifyAuthenticationResponse,
   VerifyAuthenticationResponseOpts,
 } from '@simplewebauthn/server';
+import { isoUint8Array } from '@simplewebauthn/server/helpers';
 import base64url from 'base64url';
 
-import type { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/typescript-types';
 
 import * as users from './db/users';
 import * as anonymousChallenges from './db/anonymousChallenges';
@@ -63,20 +64,20 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
 
 export const authenticationVerify = async ({
   email,
-  credential,
+  authenticationBody,
 }: users.User & {
-  credential: AuthenticationCredentialJSON;
+  authenticationBody: AuthenticationResponseJSON;
 }) => {
   let user: users.User | undefined;
   let expectedChallenge: string | undefined = undefined;
   if (email) {
     user = await users.getForChallenge({ email }, true);
     expectedChallenge = user.challenge.data;
-  } else if (credential.response.userHandle) {
-    user = await users.get({ id: credential.response.userHandle });
+  } else if (authenticationBody.response.userHandle) {
+    user = await users.get({ id: authenticationBody.response.userHandle });
 
     const { challenge } = JSON.parse(
-      Buffer.from(credential.response.clientDataJSON, 'base64') as any as string
+      Buffer.from(authenticationBody.response.clientDataJSON, 'base64') as any as string
     );
     if (await anonymousChallenges.exists(challenge)) {
       expectedChallenge = challenge;
@@ -90,10 +91,10 @@ export const authenticationVerify = async ({
   }
 
   let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
-  const bodyCredIDBuffer = base64url.toBuffer(credential.rawId);
+  const bodyCredIDBuffer = base64url.toBuffer(authenticationBody.rawId);
   // "Query the DB" here for an authenticator matching `credentialID`
   for (const device of user.devices) {
-    if (device.credentialID.equals(bodyCredIDBuffer)) {
+    if (isoUint8Array.areEqual(device.credentialID, bodyCredIDBuffer)) {
       dbAuthenticator = device;
       break;
     }
@@ -105,7 +106,7 @@ export const authenticationVerify = async ({
 
   let verification: VerifiedAuthenticationResponse;
   const opts: VerifyAuthenticationResponseOpts = {
-    credential,
+    response: authenticationBody,
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin: webUrl,
     expectedRPID: rpID,
