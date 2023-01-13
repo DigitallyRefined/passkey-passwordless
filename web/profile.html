@@ -10,7 +10,7 @@
 </head>
 
 <body>
-  <h1><a href="/">WebAuthn - Account</a></h1>
+  <h1><a href="/account.html">WebAuthn - Account</a></h1>
 
   <section id="account" style="visibility: hidden">
     <p>
@@ -50,6 +50,7 @@
     const accountDetails = await accountReq.json();
     if (!accountDetails.email) {
       window.location = '/';
+      throw new Error('Not logged in');
     }
 
     document.querySelector('#email').value = accountDetails.email;
