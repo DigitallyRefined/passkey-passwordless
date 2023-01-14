@@ -19,7 +19,7 @@
   </form>
   <p></p>
 
-  <form action="authenticate.html" id="btnAuthBegin">
+  <form action="authenticate.html" id="btnLogin">
     <button type="submit">
       <strong>🔐&nbsp;Login</strong>
     </button>
@@ -31,7 +31,7 @@
     /**
      * Authentication
      */
-    document.querySelector('#btnAuthBegin').addEventListener('submit', async (e) => {
+    document.querySelector('#btnLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       if (localStorage.getItem('hasResidentKey')) {

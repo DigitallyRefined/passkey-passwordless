@@ -50,6 +50,8 @@
         <strong>🔐&nbsp;Login</strong>
       </button>
     </p>
+
+    <p><a href="#" id="loginWithKey">Or login with a security key</a></p>
   </form>
 
   <script type="module">
@@ -62,20 +64,13 @@
     /**
      * Authentication via email & passkey
      */
-    loginForm.addEventListener('submit', async (e) => {
+    const login = async (email) => {
       // Reset success/error messages
       feedbackTxt.innerText = '';
 
-      if (!loginForm.checkValidity()) {
-        throw new Error('Fill out the form');
-      }
-
-      e.preventDefault();
-
-      const email = document.querySelector('#email').value;
-
       try {
-        const authenticationResult = await authenticate({ email, emailLoginLinkOnFailure: true });
+        const authenticationOptions = email ? { email, emailLoginLinkOnFailure: true } : {};
+        const authenticationResult = await authenticate(authenticationOptions);
         if (authenticationResult === 'verified') {
           window.location = 'account.html';
         } else {
@@ -86,6 +81,24 @@
         feedbackTxt.innerText = 'There was an error while trying to login.';
         throw err;
       }
+    };
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!loginForm.checkValidity()) {
+        throw new Error('Fill out the form');
+      }
+
+      const email = document.querySelector('#email').value;
+
+      await login(email);
+    });
+
+    document.querySelector('#loginWithKey').addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      await login();
     });
   </script>
 </body>
