@@ -1,7 +1,7 @@
 import { parse as parseUserAgent } from 'platform';
 import { createTransport } from 'nodemailer';
 
-import { config } from './config';
+import { config } from '../config';
 
 export const getWebAuthnValidUntil = () => Date.now() + config.webAuthnOptions.timeout;
 

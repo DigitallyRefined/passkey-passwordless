@@ -32,38 +32,45 @@
 
     const params = new URLSearchParams(window.location.search);
 
-    try {
-      const req = await fetch(`${config.apiUrl}/email/validate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: params.get('code') }),
-        credentials: 'include',
-      });
-
-      const res = await req.json();
-
-      if (!req.ok) {
-        throw new Error(`Failed: ${req.statusText} ${JSON.stringify(res, null, 2)}`);
-      }
-    } catch (err) {
-      feedbackTxt.innerText = err.message.includes('code not found')
-        ? 'Verification code not found, has expired or you email has already been confirmed.'
-        : 'There was an error while trying validate your account.';
-      throw err;
-    }
-
-    if (params.has('registerDevice')) {
+    const registerDevice = async () => {
       document.querySelector('.alert').style.display = 'flex';
       try {
         await register({ isExistingUser: true });
       } catch (err) {
         console.error(err);
       }
-    }
+    };
 
-    window.location = 'account.html';
+    const validateEmail = async () => {
+      try {
+        const req = await fetch(`${config.apiUrl}/email/validate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: params.get('code') }),
+          credentials: 'include',
+        });
+
+        const res = await req.json();
+
+        if (!req.ok) {
+          throw new Error(`Failed: ${req.statusText} ${JSON.stringify(res, null, 2)}`);
+        }
+
+        if (params.has('registerDevice')) {
+          await registerDevice();
+        }
+        window.location = 'account.html';
+      } catch (err) {
+        feedbackTxt.innerText = err.message.includes('code not found')
+          ? 'Verification code not found, has expired or you email has already been confirmed.'
+          : 'There was an error while trying validate your account.';
+        throw err;
+      }
+    };
+
+    validateEmail();
   </script>
 </body>
 

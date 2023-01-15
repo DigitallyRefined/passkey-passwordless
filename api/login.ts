@@ -127,6 +127,6 @@ export const authenticationVerify = async ({
   return {
     verified,
     clientExtensionResults: dbAuthenticator.clientExtensionResults,
-    jwtToken: getJwtToken(user),
+    jwtToken: verified ? getJwtToken(user) : null,
   };
 };

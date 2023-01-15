@@ -43,9 +43,9 @@ export const register = async ({
       attRes?.authenticatorAttachment === 'platform' ||
       attRes?.clientExtensionResults?.credProps?.rk
     ) {
-      localStorage.setItem('hasResidentKey', true);
+      localStorage.setItem('canLoginWithResidentKey', true);
     } else {
-      localStorage.removeItem('hasResidentKey');
+      localStorage.removeItem('canLoginWithResidentKey');
     }
 
     const deviceName = askForDeviceName ? prompt('Device name') : undefined;
@@ -75,7 +75,7 @@ export const register = async ({
       throw new Error(`Verification error: ${JSON.stringify(verificationJSON, null, 2)}`);
     }
   } catch (err) {
-    localStorage.removeItem('hasResidentKey');
+    localStorage.removeItem('canLoginWithResidentKey');
     if (err.message.includes('Failed')) {
       return err.message.includes('Email already registered')
         ? 'This email address is already registered.'

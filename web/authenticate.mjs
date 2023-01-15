@@ -62,23 +62,25 @@ export const authenticate = async ({
       asseRes.authenticatorAttachment === 'platform' ||
       verificationJSON?.clientExtensionResults?.credProps?.rk
     ) {
-      localStorage.setItem('hasResidentKey', true);
+      localStorage.setItem('canLoginWithResidentKey', true);
     } else {
-      localStorage.removeItem('hasResidentKey');
+      localStorage.removeItem('canLoginWithResidentKey');
     }
 
     if (verificationJSON && verificationJSON.verified) {
-      return 'verified';
+      return { ...verificationJSON, error: false };
     } else {
       throw new AuthenticationError(
         `Verification error: ${JSON.stringify(verificationJSON, null, 2)}`
       );
     }
   } catch (err) {
-    localStorage.removeItem('hasResidentKey');
+    localStorage.removeItem('canLoginWithResidentKey');
     const userId = err.details?.response?.userHandle;
     if (err.message?.includes('User not found')) {
-      return `No account was found matching this ${email ? 'email address' : 'passkey'}.`;
+      return {
+        error: `No account was found matching this ${email ? 'email address' : 'passkey'}.`,
+      };
     } else if (emailLoginLinkOnFailure && (email || userId)) {
       console.error(err);
 
@@ -90,9 +92,11 @@ export const authenticate = async ({
         body: JSON.stringify(email ? { email } : { id: userId }),
       });
       console.log('Send email validation response', await sendValidationReq.text());
-      return sendValidationReq.ok
-        ? "Check your email/console, we've sent you a login link."
-        : 'There was an error while trying to send you a validation email';
+      return {
+        error: sendValidationReq.ok
+          ? "Check your email/console, we've sent you a login link."
+          : 'There was an error while trying to send you a validation email',
+      };
     }
     throw err;
   }

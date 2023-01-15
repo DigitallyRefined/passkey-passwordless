@@ -63,9 +63,11 @@ app.post(
 app.post(
   '/email/validate',
   asyncHandler(async (req, res) => {
-    const updatedUser = await emailVerify(req.body.code);
-    setLoginJwtCookie(res, updatedUser.jwtToken);
-    res.send(updatedUser);
+    const emailVerifyRes = await emailVerify(req.body.code);
+    if (emailVerifyRes.jwtToken) {
+      setLoginJwtCookie(res, emailVerifyRes.jwtToken);
+    }
+    res.send(emailVerifyRes);
   })
 );
 
@@ -87,7 +89,9 @@ app.post(
   '/authentication/verify',
   asyncHandler(async (req, res) => {
     const authRes = await authenticationVerify(req.body);
-    setLoginJwtCookie(res, authRes.jwtToken);
+    if (authRes.jwtToken) {
+      setLoginJwtCookie(res, authRes.jwtToken);
+    }
     res.send(authRes);
   })
 );
@@ -104,8 +108,8 @@ app.use(
 
 app.get(
   '/account',
-  asyncHandler(async (req: RequestJwt<any>, res) => {
-    res.send(await getAccount(req.auth));
+  asyncHandler((req: RequestJwt<any>, res) => {
+    res.send(getAccount(req.auth));
   })
 );
 

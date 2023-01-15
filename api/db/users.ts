@@ -31,6 +31,8 @@ export interface User {
   };
 }
 
+export type JwtData = Pick<User, 'id' | 'email' | 'devices'>;
+
 const users = database.collection<User>('users');
 
 export const create = async (user: User) => {

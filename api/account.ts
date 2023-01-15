@@ -20,13 +20,13 @@ export const getJwtToken = (user: User | null) =>
             name: device.name,
             lastUsed: device.lastUsed,
           })),
-        },
+        } as users.JwtData,
         JWT_SECRET,
         { expiresIn: '24h' }
       )
     : '';
 
-export const getAccount = async (user: User) => ({
+export const getAccount = (user: users.JwtData) => ({
   email: user.email,
   devices: user.devices,
 });

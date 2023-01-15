@@ -12,6 +12,17 @@
 <body>
   <h1><a href="/">WebAuthn - Login</a></h1>
 
+  <script>
+    const handleAuthenticateResult = (authenticationResult) => {
+      if (authenticationResult.verified) {
+        window.location = 'account.html';
+      } else {
+        loginForm.style.display = 'none';
+        feedbackTxt.innerText = authenticationResult.error;
+      }
+    }
+  </script>
+
   <script type="module">
     import { authenticate } from './authenticate.mjs';
     import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
@@ -25,12 +36,7 @@
           useBrowserAutofill: true,
           emailLoginLinkOnFailure: true,
         });
-        if (authenticationResult === 'verified') {
-          window.location = 'account.html';
-        } else {
-          loginForm.style.display = 'none';
-          feedbackTxt.innerText = authenticationResult;
-        }
+        handleAuthenticateResult(authenticationResult);
       } catch (err) {
         console.error('Autofill error', err);
       }
@@ -71,12 +77,7 @@
       try {
         const authenticationOptions = email ? { email, emailLoginLinkOnFailure: true } : {};
         const authenticationResult = await authenticate(authenticationOptions);
-        if (authenticationResult === 'verified') {
-          window.location = 'account.html';
-        } else {
-          loginForm.style.display = 'none';
-          feedbackTxt.innerText = authenticationResult;
-        }
+        handleAuthenticateResult(authenticationResult);
       } catch (err) {
         feedbackTxt.innerText = 'There was an error while trying to login.';
         throw err;
