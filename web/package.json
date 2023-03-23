@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "index.html",
   "dependencies": {
-    "@simplewebauthn/browser": "^7.0.1"
+    "@simplewebauthn/browser": "^7.2.0"
   },
   "repository": {
     "type": "git",
