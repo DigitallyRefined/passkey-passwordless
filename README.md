@@ -8,7 +8,7 @@ Includes web frontend (nginx), API (Node/Express), Database (Mongo), and a Datab
 
 ## Quick start
 
-Prerequisites: [Node](https://nodejs.org/) and [Docker](https://www.docker.com/) should be installed.
+Prerequisites: [Node](https://nodejs.org/) and optionally [Docker](https://www.docker.com/) should be installed.
 
 1. `npm install`
 2. `npm start`
@@ -18,9 +18,9 @@ Prerequisites: [Node](https://nodejs.org/) and [Docker](https://www.docker.com/)
 1. http://localhost:3000 to register and login
 2. Check the console output for the email confirmation links
 3. In Chrome, open "DevTools > Console > More tools (hamburger menu) > WebAuthn > Enable virtual authenticator environment" to try out different key types
-4. http://localhost:8081 to check the user database
+4. If Docker is installed check http://localhost:8081 for the user database
 5. Attempt to login from different devices, desktop vs. mobile
-6. Reset database via `npm run reset:db`
+6. Reset database via `npm run reset:db` (Docker only)
 7. Optionally set the SMTP settings in `apps.env` to send email and change `config.ts` to match your domain and security requirements
 
 ## Browser support

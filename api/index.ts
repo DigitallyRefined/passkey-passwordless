@@ -1,4 +1,5 @@
 import http from 'http';
+import path from 'path';
 
 import express, { Response } from 'express';
 import cors from 'cors';
@@ -30,12 +31,14 @@ app.use(cors({ origin: config.webUrl, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.get(
-  '/',
-  asyncHandler(async (req, res) => {
-    res.send({ status: 'ok' });
-  })
-);
+if (process.env.ME_CONFIG_MONGODB_URL) {
+  app.get(
+    '/',
+    asyncHandler(async (req, res) => {
+      res.redirect('http://localhost:3000');
+    })
+  );
+}
 
 app.post(
   '/registration/generate-options',
@@ -179,8 +182,12 @@ app.get(
 
 app.use(errorHandler);
 
+if (!process.env.ME_CONFIG_MONGODB_URL) {
+  app.use('/', express.static(path.join(__dirname, '..', 'web')));
+}
+
 const host = '0.0.0.0';
-const port = 4000;
+const port = process.env.ME_CONFIG_MONGODB_URL ? 4000 : 3000;
 
 http.createServer(app).listen(port, host, () => {
   console.log(`🚀 Server ready at ${host}:${port}`);
