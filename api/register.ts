@@ -80,7 +80,7 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
   /**
    * A simple way of storing a user's current challenge being signed by registration or authentication.
    * It should be expired after `timeout` milliseconds (optional argument for `generate` methods,
-   * defaults to 60000ms)
+   * defaults to 150000ms)
    *
    * The server needs to temporarily remember this value for verification, so don't lose it until
    * after you verify an authenticator response.

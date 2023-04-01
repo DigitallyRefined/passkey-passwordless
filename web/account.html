@@ -19,31 +19,7 @@
     <p id="success">✅ You've successfully logged in as: <span id="loggedInAs"></span></p>
   </section>
 
-  <script type="module">
-    import { register } from './register.mjs';
-
-    import { config } from './config.js';
-    const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
-
-    const accountReq = await fetch(`${config.apiUrl}/account`, {
-      credentials: 'include',
-    });
-    const accountDetails = await accountReq.json();
-    if (!accountDetails.email) {
-      window.location = '/';
-      throw new Error('Not logged in');
-    }
-
-    document.querySelector('#loggedInAs').innerText = accountDetails.email;
-    document.querySelector('#account').style.visibility = 'visible';
-
-    document.querySelector('#logout').addEventListener('click', async (e) => {
-      await fetch(`${config.apiUrl}/account/logout`, {
-        credentials: 'include',
-      });
-      window.location = '/';
-    });
-  </script>
+  <script type="module" src="./account.mjs"></script>
 </body>
 
 </html>

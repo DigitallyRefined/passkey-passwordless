@@ -1,4 +1,5 @@
 node_modules
 apps.env
 api/config.ts
-web/config.js
+web/config.mts
+web/**/*.mjs

@@ -12,19 +12,8 @@
 <body>
   <h1><a href="/">WebAuthn - Login</a></h1>
 
-  <script>
-    const handleAuthenticateResult = (authenticationResult) => {
-      if (authenticationResult.verified) {
-        window.location = 'account.html';
-      } else {
-        loginForm.style.display = 'none';
-        feedbackTxt.innerText = authenticationResult.error;
-      }
-    }
-  </script>
-
   <script type="module">
-    import { authenticate } from './authenticate.mjs';
+    import { authenticate } from './webauthn/authenticate.mjs';
     import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
     /**
@@ -36,7 +25,12 @@
           useBrowserAutofill: true,
           emailLoginLinkOnFailure: true,
         });
-        handleAuthenticateResult(authenticationResult);
+        if (authenticationResult.verified) {
+          window.location = 'account.html';
+        } else {
+          loginForm.style.display = 'none';
+          feedbackTxt.innerText = authenticationResult.error;
+        }
       } catch (err) {
         console.error('Autofill error', err);
       }
@@ -60,48 +54,7 @@
     <p><a href="#" id="loginWithKey">Or login with a security key</a></p>
   </form>
 
-  <script type="module">
-    import { authenticate } from './authenticate.mjs';
-    import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
-
-    const loginForm = document.querySelector('#loginForm');
-    const feedbackTxt = document.querySelector('#feedbackTxt');
-
-    /**
-     * Authentication via email & passkey
-     */
-    const login = async (email) => {
-      // Reset success/error messages
-      feedbackTxt.innerText = '';
-
-      try {
-        const authenticationOptions = email ? { email, emailLoginLinkOnFailure: true } : {};
-        const authenticationResult = await authenticate(authenticationOptions);
-        handleAuthenticateResult(authenticationResult);
-      } catch (err) {
-        feedbackTxt.innerText = 'There was an error while trying to login.';
-        throw err;
-      }
-    };
-
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      if (!loginForm.checkValidity()) {
-        throw new Error('Fill out the form');
-      }
-
-      const email = document.querySelector('#email').value;
-
-      await login(email);
-    });
-
-    document.querySelector('#loginWithKey').addEventListener('click', async (e) => {
-      e.preventDefault();
-
-      await login();
-    });
-  </script>
+  <script type="module" src="./authenticate.mjs"></script>
 </body>
 
 </html>

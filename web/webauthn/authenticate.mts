@@ -1,12 +1,17 @@
 import {
   browserSupportsWebAuthn,
   startAuthentication,
-} from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+  // @ts-ignore
+} from '../node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+// @ts-ignore
+import type { AuthenticationResponseJSON } from '@simplewebauthn/typescript-types';
 
-import { config } from './config.js';
+import { config } from '../config.mjs';
 
 class AuthenticationError extends Error {
-  constructor(message, details) {
+  details?: AuthenticationResponseJSON;
+
+  constructor(message?: string, details?: AuthenticationResponseJSON) {
     super(message);
     this.name = 'AuthenticationError';
     this.details = details;
@@ -17,6 +22,10 @@ export const authenticate = async ({
   email,
   emailLoginLinkOnFailure = false,
   useBrowserAutofill,
+}: {
+  email?: string;
+  emailLoginLinkOnFailure?: boolean;
+  useBrowserAutofill?: boolean;
 } = {}) => {
   try {
     if (!browserSupportsWebAuthn()) {
@@ -62,7 +71,7 @@ export const authenticate = async ({
       asseRes.authenticatorAttachment === 'platform' ||
       verificationJSON?.clientExtensionResults?.credProps?.rk
     ) {
-      localStorage.setItem('canLoginWithResidentKey', true);
+      localStorage.setItem('canLoginWithResidentKey', 'true');
     } else {
       localStorage.removeItem('canLoginWithResidentKey');
     }
@@ -76,6 +85,11 @@ export const authenticate = async ({
     }
   } catch (err) {
     localStorage.removeItem('canLoginWithResidentKey');
+
+    if (!(err instanceof AuthenticationError)) {
+      throw err;
+    }
+
     const userId = err.details?.response?.userHandle;
     if (err.message?.includes('User not found')) {
       return {

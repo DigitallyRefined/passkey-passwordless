@@ -13,7 +13,7 @@ export const config: Config = {
      */
     rpID: hostname,
     rpName: 'WebAuthn Passwordless Example',
-    timeout: 60000,
+    timeout: 150000,
     /**
      * Restrict allowed devices/manufactures
      * "none" is the recommended setting to allow users to use different platforms & security key manufactures

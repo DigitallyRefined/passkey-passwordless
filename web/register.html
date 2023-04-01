@@ -33,45 +33,7 @@
     </button>
   </form>
 
-  <script type="module">
-    import { register } from './register.mjs';
-
-    import { config } from './config.js';
-    const { residentKey } = config.webAuthnOptions;
-
-    const regForm = document.querySelector('#regForm');
-    const feedbackTxt = document.querySelector('#feedbackTxt');
-
-    /**
-     * Registration
-     */
-    regForm.addEventListener('submit', async (e) => {
-      // Reset success/error messages
-      feedbackTxt.innerText = '';
-
-      const email = document.querySelector('#email').value;
-
-      if (!regForm.checkValidity()) {
-        throw new Error('Fill out the form');
-      }
-
-      e.preventDefault();
-
-      try {
-        const registrationResult = await register({ email });
-        if (registrationResult === 'registered' || registrationResult === 'ok') {
-          regForm.style.display = 'none';
-          feedbackTxt.innerText = `Check your email/console, we've sent you a login link. ${registrationResult === 'registered' ? ' Authenticator registered.' : ''
-            }`;
-        } else {
-          feedbackTxt.innerText = registrationResult;
-        }
-      } catch (err) {
-        feedbackTxt.innerText = 'There was an error during registration.';
-        throw err;
-      }
-    });
-  </script>
+  <script type="module" src="./register.mjs"></script>
 </body>
 
 </html>
