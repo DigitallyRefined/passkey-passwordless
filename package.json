@@ -4,13 +4,8 @@
   "scripts": {
     "start": "bash -x ./start.sh",
     "reset:db": "bash -x ./reset-db.sh",
-    "build": "tsc",
-    "postinstall": "cd web && npm install",
+    "postinstall": "cd api && npm install && cd ../web && npm install",
     "update-deps": "bash -x ./update.sh"
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.9",
-    "typescript": "^5.0.2"
   },
   "repository": {
     "type": "git",

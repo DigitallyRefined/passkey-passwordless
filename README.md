@@ -13,6 +13,20 @@ Prerequisites: [Node](https://nodejs.org/) and optionally [Docker](https://www.d
 1. `npm install`
 2. `npm start`
 
+
+### Missing `libcrypto.so.1.1`?
+
+On some systems (like some versions of Ubuntu) if using Node only, you may incounter the following error:
+
+`StdoutInstanceError: Instance failed to start because a library is missing or cannot be opened: "libcrypto.so.1.1"`
+
+Which can be resolved by installing [`libssl1.1`](https://github.com/nodkz/mongodb-memory-server/issues/480#issuecomment-1488548395):
+
+```bash
+wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+```
+
 ## Usage
 
 1. http://localhost:3000 to register and login

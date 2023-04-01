@@ -1,12 +1,17 @@
-import { startRegistration } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+// @ts-ignore
+import { startRegistration } from '../node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 
-import { config } from './config.js';
+import { config } from '../config.mjs';
 const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
 
 export const register = async ({
   email,
   isExistingUser = false,
   askForDeviceName = false,
+}: {
+  email?: string;
+  isExistingUser?: boolean;
+  askForDeviceName?: boolean;
 } = {}) => {
   const credentials = isExistingUser ? 'include' : 'same-origin';
 
@@ -43,7 +48,7 @@ export const register = async ({
       attRes?.authenticatorAttachment === 'platform' ||
       attRes?.clientExtensionResults?.credProps?.rk
     ) {
-      localStorage.setItem('canLoginWithResidentKey', true);
+      localStorage.setItem('canLoginWithResidentKey', 'true');
     } else {
       localStorage.removeItem('canLoginWithResidentKey');
     }
@@ -76,6 +81,11 @@ export const register = async ({
     }
   } catch (err) {
     localStorage.removeItem('canLoginWithResidentKey');
+
+    if (!(err instanceof Error)) {
+      throw err;
+    }
+
     if (err.message.includes('Failed')) {
       return err.message.includes('Email already registered')
         ? 'This email address is already registered.'

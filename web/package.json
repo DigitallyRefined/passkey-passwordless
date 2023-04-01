@@ -2,8 +2,15 @@
   "name": "webauthn-passwordless-web",
   "version": "0.0.1",
   "main": "index.html",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
   "dependencies": {
     "@simplewebauthn/browser": "^7.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.3"
   },
   "repository": {
     "type": "git",
