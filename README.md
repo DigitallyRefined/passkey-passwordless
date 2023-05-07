@@ -8,15 +8,19 @@ Includes web frontend (nginx), API (Node/Express), Database (Mongo), and a Datab
 
 ## Quick start
 
-Prerequisites: [Node](https://nodejs.org/) and optionally [Docker](https://www.docker.com/) should be installed.
+Prerequisites: [Node](https://nodejs.org/) and/or [Docker](https://www.docker.com/) should be installed.
+
+The app can either be started using Node or Docker:
+
+### Node
 
 1. `npm install`
 2. `npm start`
 
+<details>
+<summary>Missing `libcrypto.so.1.1`?</summary>
 
-### Missing `libcrypto.so.1.1`?
-
-On some systems (like some versions of Ubuntu) if using Node only, you may incounter the following error:
+On some systems (like some versions of Ubuntu) if using Node only, you may encounter the following error:
 
 `StdoutInstanceError: Instance failed to start because a library is missing or cannot be opened: "libcrypto.so.1.1"`
 
@@ -26,6 +30,11 @@ Which can be resolved by installing [`libssl1.1`](https://github.com/nodkz/mongo
 wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 ```
+</details>
+
+### Docker
+
+`./start.sh`
 
 ## Usage
 
