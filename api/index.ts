@@ -35,7 +35,7 @@ if (process.env.ME_CONFIG_MONGODB_URL) {
   app.get(
     '/',
     asyncHandler(async (req, res) => {
-      res.redirect('http://localhost:3000');
+      res.redirect(config.apiUrl);
     })
   );
 }
