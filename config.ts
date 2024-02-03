@@ -12,7 +12,7 @@ export const config: Config = {
      * Only `localhost` and FQDNs that match the current domain are valid.
      */
     rpID: hostname,
-    rpName: 'WebAuthn Passwordless Example',
+    rpName: 'Passkey Example',
     timeout: 150000,
     /**
      * Restrict allowed devices/manufactures

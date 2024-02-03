@@ -1,5 +1,5 @@
 {
-  "name": "webauthn-passwordless-web",
+  "name": "passkey-passwordless-web",
   "version": "0.0.1",
   "main": "index.html",
   "scripts": {
@@ -7,18 +7,18 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^7.2.0"
+    "@simplewebauthn/browser": "^9.0.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.4"
+    "typescript": "^5.3.3"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DigitallyRefined/webauthn-passwordless.git"
+    "url": "git+https://github.com/DigitallyRefined/passkey-passwordless.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/DigitallyRefined/webauthn-passwordless/issues"
+    "url": "https://github.com/DigitallyRefined/passkey-passwordless/issues"
   },
-  "homepage": "https://github.com/DigitallyRefined/webauthn-passwordless#readme"
+  "homepage": "https://github.com/DigitallyRefined/passkey-passwordless#readme"
 }
