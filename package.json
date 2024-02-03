@@ -1,5 +1,5 @@
 {
-  "name": "webauthn-passwordless",
+  "name": "passkey-passwordless",
   "version": "0.0.1",
   "scripts": {
     "start": "bash -x ./start.sh",
@@ -9,11 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DigitallyRefined/webauthn-passwordless.git"
+    "url": "git+https://github.com/DigitallyRefined/passkey-passwordless.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/DigitallyRefined/webauthn-passwordless/issues"
+    "url": "https://github.com/DigitallyRefined/passkey-passwordless/issues"
   },
-  "homepage": "https://github.com/DigitallyRefined/webauthn-passwordless#readme"
+  "homepage": "https://github.com/DigitallyRefined/passkey-passwordless#readme"
 }

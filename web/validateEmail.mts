@@ -38,7 +38,7 @@ const validateEmail = async () => {
     (window as Window).location = 'account.html';
   } catch (err) {
     feedbackTxt.innerText = (err as Error).message.includes('code not found')
-      ? 'Verification code not found, has expired or you email has already been confirmed.'
+      ? 'Verification code was not found or it has expired.'
       : 'There was an error while trying validate your account.';
     throw err;
   }

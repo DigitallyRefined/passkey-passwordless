@@ -75,7 +75,7 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
     supportedAlgorithmIDs: [-7, -257],
   };
 
-  const options = generateRegistrationOptions(opts);
+  const options = await generateRegistrationOptions(opts);
 
   /**
    * A simple way of storing a user's current challenge being signed by registration or authentication.

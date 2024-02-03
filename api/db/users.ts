@@ -84,16 +84,16 @@ export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}
 
 export const validateEmailCode = async (code: string) => {
   const now = Date.now();
-  const updated = await users.findOneAndUpdate(
+  const updatedUser = await users.findOneAndUpdate(
     { 'verification.data': code, 'verification.validUntil': { $gt: now } },
     { $set: { 'verification.validated': true, 'verification.validUntil': now } }
   );
 
-  if (!updated.lastErrorObject?.updatedExisting) {
+  if (!updatedUser) {
     throw new Error('Verification code not found');
   }
 
-  return updated.value;
+  return updatedUser;
 };
 
 export const getForChallenge = async (user: EmailOrId, requireEmailValidated = true) => {

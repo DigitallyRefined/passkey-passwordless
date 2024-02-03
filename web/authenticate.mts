@@ -15,8 +15,7 @@ const login = async (email?: string) => {
   feedbackTxt.innerText = '';
 
   try {
-    const authenticationOptions = email ? { email, emailLoginLinkOnFailure: true } : {};
-    const authenticationResult = await authenticate(authenticationOptions);
+    const authenticationResult = await authenticate({ email, emailLoginLinkOnFailure: true });
     if (authenticationResult.verified) {
       (window as Window).location = 'account.html';
     } else {
@@ -24,7 +23,8 @@ const login = async (email?: string) => {
       feedbackTxt.innerText = authenticationResult.error;
     }
   } catch (err) {
-    feedbackTxt.innerText = 'There was an error while trying to login.';
+    feedbackTxt.innerText =
+      'We were unable to sign in automatically, please login using your email address.';
     throw err;
   }
 };

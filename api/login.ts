@@ -44,7 +44,7 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
     rpID,
   };
 
-  const options = generateAuthenticationOptions(opts);
+  const options = await generateAuthenticationOptions(opts);
 
   /**
    * The server needs to temporarily remember this value for verification, so don't lose it until

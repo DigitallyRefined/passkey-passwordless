@@ -86,12 +86,9 @@ export const authenticate = async ({
   } catch (err) {
     localStorage.removeItem('canLoginWithResidentKey');
 
-    if (!(err instanceof AuthenticationError)) {
-      throw err;
-    }
-
-    const userId = err.details?.response?.userHandle;
-    if (err.message?.includes('User not found')) {
+    const isAuthenticationError = err instanceof AuthenticationError;
+    const userId = isAuthenticationError ? err.details?.response?.userHandle : null;
+    if (isAuthenticationError && err.message?.includes('User not found')) {
       return {
         error: `No account was found matching this ${email ? 'email address' : 'passkey'}.`,
       };

@@ -1,6 +1,6 @@
-# WebAuthn Passwordless
+# Passkey Passwordless
 
-An example WebAuthn application showing how passwordless registration and authentication journeys work.
+An example Passkey application showing how passwordless registration and authentication journeys work (via WebAuthn).
 
 Includes progressive enhancement for devices that support saving usernames and keys (via resident storage), account management to add additional devices and fallback to magic email login links for devices that don't support (or cancel) WebAuthn.
 
@@ -20,15 +20,19 @@ The app can either be started using Node or Docker:
 <details>
 <summary>Missing `libcrypto.so.1.1`?</summary>
 
-On some systems (like some versions of Ubuntu) if using Node only, you may encounter the following error:
+On some systems if you're using Node only, you may encounter the following error:
 
 `StdoutInstanceError: Instance failed to start because a library is missing or cannot be opened: "libcrypto.so.1.1"`
 
 Which can be resolved by installing [`libssl1.1`](https://github.com/nodkz/mongodb-memory-server/issues/480#issuecomment-1488548395):
 
 ```bash
+# Debian/Ubuntu
 wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# RHL/Fedora
+sudo dnf install openssl1.1
 ```
 </details>
 
@@ -82,9 +86,9 @@ On Windows Firefox supports Windows Hello (biometric login). On Android resident
 
 #### **\*** ⤵️ Other Chromium based browsers
 
-Different Chromium based browsers may have different WebAuthn implementation. Some may have full support (such as Brave & Samsung Internet), partial or no support for WebAuthn.
+Different Chromium based browsers may have different WebAuthn implementations. Some may have full support (such as Brave & Samsung Internet), partial or no support for WebAuthn.
 
-## Managing WebAuthn keys
+## Managing Passkeys
 
 ### Android
 
@@ -105,13 +109,13 @@ On both Android and desktop in Chrome/Chromium based browsers navigate to "Setti
 <details>
 <summary>Via Windows Terminal</summary>
 
-To view WebAuthn keys stored by Windows Hello, from a command prompt, run:
+To view Passkeys stored by Windows Hello, from a command prompt, run:
 
 `certutil -csp NGC -key`
 
-WebAuthn keys have names that look like `<sid>/<guid>/FIDO_AUTHENTICATOR//<rpIdHash>_<user id>`
+Passkeys have names that look like `<sid>/<guid>/FIDO_AUTHENTICATOR//<rpIdHash>_<user id>`
 
-You need to identify the key that you want to delete, and then to delete a WebAuthn key, from an administrator command prompt, run:
+You need to identify the key that you want to delete, and then to delete a Passkey, from an administrator command prompt, run:
 
 `certutil -csp NGC -delkey <name>` Replacing `<name>` with the full pathname from the output of the command above.
 </details>
@@ -130,7 +134,7 @@ Passkeys are managed under "System Settings > Passwords". Click the i icon > Edi
 
 [YubiKey 5](https://support.yubico.com/hc/en-us/articles/360016649339-YubiKey-5C-NFC) and higher: use the [Yubico Authenticator app](https://www.yubico.com/products/yubico-authenticator/) (running as Administrator), clicking through to the WebAuthn settings and entering the keys passphrase to view stored keys. In Chromium based browsers on Linux, security keys can also be managed via "Settings > Privacy and security > Security > Manage security keys".
 
-Older YubiKeys (such as [U2F keys](https://support.yubico.com/hc/en-us/articles/360013656800-FIDO-U2F-Security-Key)) do not store resident keys and use a computed public/private key, as there no data stored on the key.
+Older YubiKeys (such as [U2F keys](https://support.yubico.com/hc/en-us/articles/360013656800-FIDO-U2F-Security-Key)) do not store resident keys and use a computed public/private key, as there's no data stored on the key.
 
 ## See also
 
