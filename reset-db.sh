@@ -1,5 +1,5 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-cp -n apps.default.env apps.env
+cp -n .default.env .env
 
 docker compose down -v
