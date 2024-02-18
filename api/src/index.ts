@@ -183,7 +183,8 @@ app.get(
 app.use(errorHandler);
 
 if (!process.env.ME_CONFIG_MONGODB_URL) {
-  app.use('/', express.static(path.join(__dirname, '..', 'web')));
+  console.log(path.join(__dirname, '..', 'web/dist'));
+  app.use('/', express.static(path.join(__dirname, '..', '..', 'web', 'dist')));
 }
 
 const host = '0.0.0.0';
