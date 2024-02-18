@@ -1,8 +1,6 @@
-const hostname = 'localhost';
-
 export const config: Config = {
-  webUrl: `http://${hostname}:3000`,
-  apiUrl: `http://${hostname}:4000`,
+  webUrl: 'http://localhost:3000',
+  apiUrl: 'http://localhost:4000',
   webAuthnOptions: {
     /**
      * Domain or hostname
@@ -11,7 +9,7 @@ export const config: Config = {
      * represents the expected URL from which registration or authentication occurs.
      * Only `localhost` and FQDNs that match the current domain are valid.
      */
-    rpID: hostname,
+    rpID: 'localhost',
     rpName: 'Passkey Example',
     timeout: 150000,
     /**

@@ -31,7 +31,7 @@ app.use(cors({ origin: config.webUrl, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-if (process.env.ME_CONFIG_MONGODB_URL) {
+if (process.env.RUNNING_IN_DOCKER) {
   app.get(
     '/',
     asyncHandler(async (req, res) => {
@@ -182,12 +182,12 @@ app.get(
 
 app.use(errorHandler);
 
-if (!process.env.ME_CONFIG_MONGODB_URL) {
+if (!process.env.RUNNING_IN_DOCKER) {
   app.use('/', express.static(path.join(__dirname, '..', 'web')));
 }
 
 const host = '0.0.0.0';
-const port = process.env.ME_CONFIG_MONGODB_URL ? 4000 : 3000;
+const port = process.env.RUNNING_IN_DOCKER ? 4000 : 3000;
 
 http.createServer(app).listen(port, host, () => {
   console.log(`🚀 Server ready at ${host}:${port}`);

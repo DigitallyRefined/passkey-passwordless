@@ -5,21 +5,18 @@ if command -v docker &>/dev/null && curl -s --unix-socket /var/run/docker.sock h
   docker_available=true
 fi
 
-cp -n apps.default.env apps.env
+cp -n .default.env .env
 
 if $docker_available; then
-  sed -i -E 's/apiUrl:(.*):3000/apiUrl:\1:4000/' ./config.ts
+  sed -i -E 's/API_URL(.*):3000/API_URL\1:4000/' ./.env
 else
-  sed -i -E 's/apiUrl:(.*):4000/apiUrl:\1:3000/' ./config.ts
+  export DOCKER_AVAILABLE=$docker_available
+  sed -i -E 's/API_URL(.*):4000/API_URL\1:3000/' ./.env
 fi
 
-cp ./config.ts ./api/
-cp ./config.ts ./web/config.mts
-
 if $docker_available; then
-  docker compose pull
+  docker compose build
   docker compose down
-  docker run --rm -v ./web:/app node:lts bash -c "cd /app && npm install && npm run build"
   docker compose up
 else
   npm install

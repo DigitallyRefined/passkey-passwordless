@@ -1,0 +1,62 @@
+version: '3.4'
+
+x-common-variables: &common-variables
+  WEB_HOSTNAME: ${WEB_HOSTNAME-localhost}
+  WEB_URL: ${WEB_URL-http://localhost:3000}
+  API_URL: ${API_URL-http://localhost:4000}
+
+  MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME-root}
+  MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD-example}
+
+  ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME-root}
+  ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD-example}
+  ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME-root}:${MONGO_ROOT_PASSWORD-example}@db:27017/
+  # ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_ROOT_USERNAME-root}
+  # ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_ROOT_PASSWORD-example}
+
+  SMTP_HOST: ${SMTP_HOST}
+  SMTP_EMAIL: ${SMTP_EMAIL}
+  SMTP_PASSWORD: ${SMTP_PASSWORD}
+
+  JWT_SECRET: ${JWT_SECRET}
+
+services:
+  web:
+    build: 
+      context: ./web
+      args:
+        <<: *common-variables
+    restart: unless-stopped
+    ports:
+      - 3000:80  
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    environment:
+      <<: *common-variables
+
+  db:
+    image: mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - db:/data/db
+    environment:
+      <<: *common-variables
+    networks:
+      - "traefik"    
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      <<: *common-variables
+
+volumes:
+  db:

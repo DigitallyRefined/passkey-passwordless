@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "index.html",
   "scripts": {
-    "build": "tsc",
+    "build": "./build.sh",
     "dev": "tsc --watch"
   },
   "dependencies": {

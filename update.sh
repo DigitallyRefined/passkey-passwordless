@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 paths=(. api web)
 for i in "${paths[@]}"
 do
