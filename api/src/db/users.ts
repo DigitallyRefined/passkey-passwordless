@@ -1,4 +1,5 @@
 import { WebAuthnCredential } from '@simplewebauthn/server';
+import { PersistedPassphrase } from '../utils/hash';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
 export interface WebAuthnCredentialDetails extends WebAuthnCredential {
@@ -29,9 +30,14 @@ export interface User {
     validUntil: number;
     data: string;
   };
+  passphrase?: PersistedPassphrase;
+  usePassphraseAsWellAsLoginDevice?: boolean;
 }
 
-export type JwtData = Pick<User, 'id' | 'email' | 'credentials'>;
+export type JwtData = Pick<User, 'id' | 'email' | 'credentials'> & {
+  hasPassphrase: boolean;
+  usePassphraseAsWellAsLoginDevice?: boolean;
+};
 
 const users = database.collection<User>('users');
 
@@ -79,6 +85,19 @@ export const get = async (user: EmailOrId, { requireEmailValidated = true } = {}
   }
 
   return convertedUser;
+};
+
+export const getByEmailValidationCode = async (code: string) => {
+  const user = await users.findOne({
+    'verification.data': code,
+    'verification.validUntil': { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new Error('Verification code not found');
+  }
+
+  return convertUser(user);
 };
 
 export const validateEmailCode = async (code: string) => {

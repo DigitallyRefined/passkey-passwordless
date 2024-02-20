@@ -18,10 +18,12 @@ export const authenticate = async ({
   email,
   emailLoginLinkOnFailure = false,
   useBrowserAutofill,
+  passphraseAttempt,
 }: {
   email?: string;
   emailLoginLinkOnFailure?: boolean;
   useBrowserAutofill?: boolean;
+  passphraseAttempt?: string;
 } = {}) => {
   try {
     if (!browserSupportsWebAuthn()) {
@@ -53,7 +55,7 @@ export const authenticate = async ({
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, authenticationBody: asseRes }),
+      body: JSON.stringify({ email, authenticationBody: asseRes, passphraseAttempt }),
       credentials: 'include',
     });
 
@@ -66,8 +68,9 @@ export const authenticate = async ({
     }
 
     if (
-      asseRes.authenticatorAttachment === 'platform' ||
-      verificationJSON?.clientExtensionResults?.credProps?.rk
+      verificationJSON?.requiresPassphrase !== true &&
+      (asseRes.authenticatorAttachment === 'platform' ||
+        verificationJSON?.clientExtensionResults?.credProps?.rk)
     ) {
       localStorage.setItem('canLoginWithResidentKey', 'true');
     } else {
@@ -92,6 +95,8 @@ export const authenticate = async ({
           email ? 'email address' : 'passkey'
         }, please login via email.`,
       };
+    } else if (isAuthenticationError && err.message?.includes('Invalid passphrase')) {
+      return { error: `Invalid passphrase.` };
     } else if (emailLoginLinkOnFailure && (email || userId)) {
       console.error(err);
 
