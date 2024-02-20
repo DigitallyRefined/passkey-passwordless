@@ -25,7 +25,11 @@
           useBrowserAutofill: true,
           emailLoginLinkOnFailure: true,
         });
-        if (authenticationResult.verified) {
+        if (!authenticationResult.jwtToken && authenticationResult.requiresPassphrase) {
+          document.querySelector('#email').value = authenticationResult.email;
+          document.querySelector('#requiresPassphrase').style.display = 'block';
+          document.querySelector('#passphrase').focus();
+        } else if (authenticationResult.verified) {
           window.location = 'account.html';
         } else {
           loginForm.style.display = 'none';
@@ -43,6 +47,11 @@
     <p>
       <label for="email">Email address:</label><br />
       <input type="email" id="email" required autocomplete="webauthn" placeholder="email@example.com" />
+    </p>
+
+    <p id="requiresPassphrase" style="display: none">
+      <label for="passphrase">Passphrase:</label><br />
+      <input type="password" id="passphrase" />
     </p>
 
     <p>

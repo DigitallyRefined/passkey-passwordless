@@ -16,11 +16,13 @@ import {
   addDeviceVerify,
   deleteAccount,
   deleteDevice,
+  deletePassphrase,
   emailVerify,
   getAccount,
   renameDevice,
   sendValidationEmail,
   updateAccount,
+  updatePassphrase,
 } from './account';
 import { getDeviceNameFromPlatform } from './utils';
 
@@ -66,7 +68,7 @@ app.post(
 app.post(
   '/email/validate',
   asyncHandler(async (req, res) => {
-    const emailVerifyRes = await emailVerify(req.body.code);
+    const emailVerifyRes = await emailVerify(req.body.code, req.body.passphrase);
     if (emailVerifyRes.jwtToken) {
       setLoginJwtCookie(res, emailVerifyRes.jwtToken);
     }
@@ -158,6 +160,24 @@ app.delete(
   '/account/device/:id',
   asyncHandler(async (req: RequestJwt<any>, res) => {
     const updatedUser = await deleteDevice(req.auth, req.params.id);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
+  })
+);
+
+app.post(
+  '/account/passphrase',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await updatePassphrase(req.auth, req.body);
+    setLoginJwtCookie(res, updatedUser.jwtToken);
+    res.send(updatedUser);
+  })
+);
+
+app.delete(
+  '/account/passphrase',
+  asyncHandler(async (req: RequestJwt<any>, res) => {
+    const updatedUser = await deletePassphrase(req.auth, req.body.currentPassphrase);
     setLoginJwtCookie(res, updatedUser.jwtToken);
     res.send(updatedUser);
   })
