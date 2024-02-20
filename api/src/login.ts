@@ -12,6 +12,7 @@ import * as anonymousChallenges from './db/anonymousChallenges';
 import { config } from './config';
 import { getWebAuthnValidUntil } from './utils';
 import { getJwtToken } from './account';
+import { verifyPassphrase } from './utils/hash';
 
 const {
   webUrl,
@@ -58,8 +59,10 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
 export const authenticationVerify = async ({
   email,
   authenticationBody,
+  passphraseAttempt = '',
 }: users.User & {
   authenticationBody: AuthenticationResponseJSON;
+  passphraseAttempt: string;
 }) => {
   let user: users.User | undefined;
   let expectedChallenge: string | undefined = undefined;
@@ -116,9 +119,19 @@ export const authenticationVerify = async ({
     await users.updateDevice({ email: user.email }, dbAuthenticator);
   }
 
+  const requiresPassphrase = Boolean(user.usePassphraseAsWellAsLoginDevice);
+  if (requiresPassphrase && user.passphrase) {
+    if (passphraseAttempt && !(await verifyPassphrase(user.passphrase, passphraseAttempt))) {
+      throw new Error('Invalid passphrase');
+    } else if (!passphraseAttempt) {
+      return { email: user.email, verified, requiresPassphrase };
+    }
+  }
+
   return {
     verified,
     clientExtensionResults: dbAuthenticator.clientExtensionResults,
+    requiresPassphrase,
     jwtToken: verified ? getJwtToken(user) : null,
   };
 };
