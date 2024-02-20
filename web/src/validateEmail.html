@@ -22,6 +22,19 @@
     </div>
   </section>
 
+  <form id="passphraseForm" style="display: none">
+    <p id="requiresPassphrase">
+      <label for="passphrase">Passphrase:</label><br />
+      <input type="password" id="passphrase" />
+    </p>
+
+    <p>
+      <button id="btnAuthBegin" type="submit">
+        <strong>🔐&nbsp;Login</strong>
+      </button>
+    </p>
+  </form>
+
   <script type="module" src="./validateEmail.mjs"></script>
 </body>
 

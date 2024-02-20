@@ -54,6 +54,10 @@ label {
   font-weight: bold;
 }
 
+input[type='checkbox'] {
+  scale: 1.5;
+}
+
 .alert {
   background: var(--button-hover);
   color: var(--text);

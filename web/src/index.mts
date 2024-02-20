@@ -9,7 +9,7 @@ document.querySelector('#btnLogin')?.addEventListener('submit', async (e) => {
   if (localStorage.getItem('canLoginWithResidentKey')) {
     try {
       const authenticationResult = await authenticate();
-      if (authenticationResult.verified) {
+      if (authenticationResult.verified && !authenticationResult.requiresPassphrase) {
         (window as Window).location = 'account.html';
         return;
       } else {
