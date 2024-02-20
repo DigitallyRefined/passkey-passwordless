@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>Passkey - Passphrase</title>
+</head>
+
+<body>
+  <h1><a href="/account.html">Passkey - Passphrase</a></h1>
+
+  <section id="managePassphrase" style="visibility: hidden">
+    <p>
+      <a href="#" id="logout">↩️&nbsp;Logout</a> | <a href="profile.html">✍️&nbsp;Edit Profile</a>
+    </p>
+
+    <section class="alert alertInfo">
+      <div class="alertIcon">⚠️</div>
+      <div class="alertContent">
+        If you forget your passphrase you may no longer be able to login without your registered
+        device
+      </div>
+    </section>
+
+    <form id="passphraseForm">
+      <section class="hasPassphrase" style="display: none">
+        <p>
+          <input type="checkbox" id="usePassphraseIfNoLoginDevice" checked readonly disabled />
+          <label for="usePassphraseIfNoLoginDevice"> Use if I don't have my login device</label>
+        </p>
+
+        <p>
+          <input type="checkbox" id="usePassphraseAsWellAsLoginDevice" />
+          <label for="usePassphraseAsWellAsLoginDevice"> Use as well as my login device</label>
+        </p>
+      </section>
+
+      <p class="hasPassphrase" style="display: none">
+        <label for="currentPassphrase">Current passphrase:</label><br />
+        <input type="password" id="currentPassphrase" minlength="12" pattern=".*[ ].*"
+          title="Include at least one space" />
+      </p>
+
+      <p>
+        <label for="newPassphrase">New passphrase:</label><br />
+        <input type="password" id="newPassphrase" required minlength="12" pattern=".*[ ].*"
+          title="Include at least one space" />
+      </p>
+
+      <p>
+        <label for="newPassphraseConfirm">Confirm passphrase:</label><br />
+        <input type="password" id="newPassphraseConfirm" required minlength="12" pattern=".*[ ].*"
+          title="Include at least one space" />
+      </p>
+
+      <button id="btnSetPassphrase" type="submit">
+        <strong>🔐&nbsp;Set passphrase</strong>
+      </button>
+    </form>
+
+    <p>
+      <button id="btnRemovePassphrase" class="hasPassphrase" style="display: none">
+        <strong>❌&nbsp;Remove passphrase</strong>
+      </button>
+    </p>
+  </section>
+
+  <script type="module" src="./passphrase.mjs"></script>
+</body>
+
+</html>
