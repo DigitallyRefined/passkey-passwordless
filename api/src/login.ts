@@ -1,14 +1,10 @@
 import {
-  generateAuthenticationOptions,
-  GenerateAuthenticationOptionsOpts,
   VerifiedAuthenticationResponse,
+  generateAuthenticationOptions,
   verifyAuthenticationResponse,
-  VerifyAuthenticationResponseOpts,
 } from '@simplewebauthn/server';
-import { isoUint8Array } from '@simplewebauthn/server/helpers';
-import base64url from 'base64url';
-
-import type { AuthenticationResponseJSON } from '@simplewebauthn/typescript-types';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 
 import * as users from './db/users';
 import * as anonymousChallenges from './db/anonymousChallenges';
@@ -32,19 +28,16 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
     throw new Error('Account not verified');
   }
 
-  const opts: GenerateAuthenticationOptionsOpts = {
+  const options = await generateAuthenticationOptions({
     timeout,
     allowCredentials:
       user?.devices.map((device) => ({
         id: device.credentialID,
-        type: 'public-key',
         transports: device.transports || [],
       })) || [],
     userVerification,
     rpID,
-  };
-
-  const options = await generateAuthenticationOptions(opts);
+  });
 
   /**
    * The server needs to temporarily remember this value for verification, so don't lose it until
@@ -74,7 +67,9 @@ export const authenticationVerify = async ({
     user = await users.getForChallenge({ email }, true);
     expectedChallenge = user.challenge.data;
   } else if (authenticationBody.response.userHandle) {
-    user = await users.get({ id: authenticationBody.response.userHandle });
+    user = await users.get({
+      id: isoBase64URL.toUTF8String(authenticationBody.response.userHandle),
+    });
 
     const { challenge } = JSON.parse(
       Buffer.from(authenticationBody.response.clientDataJSON, 'base64') as any as string
@@ -91,10 +86,9 @@ export const authenticationVerify = async ({
   }
 
   let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
-  const bodyCredIDBuffer = base64url.toBuffer(authenticationBody.rawId);
   // "Query the DB" here for an authenticator matching `credentialID`
   for (const device of user.devices) {
-    if (isoUint8Array.areEqual(device.credentialID, bodyCredIDBuffer)) {
+    if (device.credentialID === authenticationBody.rawId) {
       dbAuthenticator = device;
       break;
     }
@@ -104,16 +98,14 @@ export const authenticationVerify = async ({
     throw new Error('Authenticator not found');
   }
 
-  let verification: VerifiedAuthenticationResponse;
-  const opts: VerifyAuthenticationResponseOpts = {
+  const verification = await verifyAuthenticationResponse({
     response: authenticationBody,
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin: webUrl,
     expectedRPID: rpID,
     authenticator: dbAuthenticator,
     requireUserVerification: userVerification === 'required',
-  };
-  verification = await verifyAuthenticationResponse(opts);
+  });
 
   const { verified, authenticationInfo } = verification;
 

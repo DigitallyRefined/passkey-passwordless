@@ -4,7 +4,7 @@ import {
   // @ts-ignore
 } from '../node_modules/@simplewebauthn/browser/dist/bundle/index.js';
 // @ts-ignore
-import type { AuthenticationResponseJSON } from '@simplewebauthn/typescript-types';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/type';
 
 import { config } from '../config.mjs';
 
@@ -90,7 +90,9 @@ export const authenticate = async ({
     const userId = isAuthenticationError ? err.details?.response?.userHandle : null;
     if (isAuthenticationError && err.message?.includes('User not found')) {
       return {
-        error: `No account was found matching this ${email ? 'email address' : 'passkey'}.`,
+        error: `No account was found matching this ${
+          email ? 'email address' : 'passkey'
+        }, please login via email.`,
       };
     } else if (emailLoginLinkOnFailure && (email || userId)) {
       console.error(err);
@@ -106,7 +108,8 @@ export const authenticate = async ({
       return {
         error: sendValidationReq.ok
           ? "Check your email/console, we've sent you a login link."
-          : 'There was an error while trying to send you a validation email',
+          : 'There was an error validating your passkey, please login via email.',
+        hideLogin: sendValidationReq.ok,
       };
     }
     throw err;

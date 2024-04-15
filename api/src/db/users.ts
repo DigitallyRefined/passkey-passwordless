@@ -1,4 +1,4 @@
-import { AuthenticatorDevice } from '@simplewebauthn/typescript-types';
+import { AuthenticatorDevice } from '@simplewebauthn/types';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
 export interface AuthenticatorDeviceDetails extends AuthenticatorDevice {
@@ -67,7 +67,6 @@ const convertUser = (user: User | null): User => {
     devices: user.devices.map((device) => ({
       ...device,
       credentialPublicKey: convertMongoDbBinaryToBuffer(device.credentialPublicKey),
-      credentialID: convertMongoDbBinaryToBuffer(device.credentialID),
     })),
   };
 };

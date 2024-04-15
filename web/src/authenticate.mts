@@ -19,7 +19,7 @@ const login = async (email?: string) => {
     if (authenticationResult.verified) {
       (window as Window).location = 'account.html';
     } else {
-      if (loginForm) loginForm.style.display = 'none';
+      if (loginForm && authenticationResult?.hideLogin) loginForm.style.display = 'none';
       feedbackTxt.innerText = authenticationResult.error;
     }
   } catch (err) {
