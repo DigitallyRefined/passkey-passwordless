@@ -1,12 +1,8 @@
 import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server';
-import type {
-  GenerateRegistrationOptionsOpts,
-  VerifyRegistrationResponseOpts,
-  VerifiedRegistrationResponse,
-} from '@simplewebauthn/server';
+import { isoUint8Array } from '@simplewebauthn/server/helpers';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { RegistrationResponseJSON } from '@simplewebauthn/typescript-types';
+import type { RegistrationResponseJSON } from '@simplewebauthn/types';
 
 import * as users from './db/users';
 import type { User } from './db/users';
@@ -16,7 +12,6 @@ import {
   getWebAuthnValidUntil,
   sendVerificationEmail,
 } from './utils';
-import { isoUint8Array } from '@simplewebauthn/server/helpers';
 
 const {
   webUrl,
@@ -46,17 +41,16 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
 
   const userID = existingUser?.id || uuidv4();
 
-  const opts: GenerateRegistrationOptionsOpts = {
+  const options = await generateRegistrationOptions({
     rpName,
     rpID,
-    userID,
+    userID: isoUint8Array.fromUTF8String(userID),
     userName: email,
     timeout,
     attestationType,
     excludeCredentials: existingUser
       ? existingUser.devices.map((device) => ({
           id: device.credentialID,
-          type: 'public-key',
           transports: device.transports || [],
         }))
       : [],
@@ -73,9 +67,7 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
      * Support the two most common algorithms: ES256, and RS256
      */
     supportedAlgorithmIDs: [-7, -257],
-  };
-
-  const options = await generateRegistrationOptions(opts);
+  });
 
   /**
    * A simple way of storing a user's current challenge being signed by registration or authentication.
@@ -127,25 +119,20 @@ export const registrationVerify = async (
 
   const expectedChallenge = user.challenge.data;
 
-  let verification: VerifiedRegistrationResponse;
-
-  const opts: VerifyRegistrationResponseOpts = {
+  const verification = await verifyRegistrationResponse({
     response: registrationBody,
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin,
     expectedRPID: rpID,
     requireUserVerification: userVerification === 'required',
-  };
-  verification = await verifyRegistrationResponse(opts);
+  });
 
   const { verified, registrationInfo } = verification;
 
   if (verified && registrationInfo) {
     const { credentialPublicKey, credentialID, counter } = registrationInfo;
 
-    const existingDevice = user.devices.find((device) =>
-      isoUint8Array.areEqual(device.credentialID, credentialID)
-    );
+    const existingDevice = user.devices.find((device) => device.credentialID === credentialID);
 
     if (!existingDevice) {
       /**
