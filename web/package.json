@@ -7,7 +7,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^9.0.1"
+    "@simplewebauthn/browser": "^10.0.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5"
