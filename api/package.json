@@ -34,7 +34,7 @@
     "typescript": "^5.4.5"
   },
   "optionalDependencies": {
-    "mongodb-memory-server": "^9.1.8"
+    "mongodb-memory-server": "^9.2.0"
   },
   "repository": {
     "type": "git",
