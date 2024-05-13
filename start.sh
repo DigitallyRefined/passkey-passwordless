@@ -2,9 +2,11 @@
 
 cp -n .default.env .env
 
-docker_available=false
 if command -v docker &>/dev/null && (curl -s --unix-socket /var/run/docker.sock http/_ping 2>&1 >/dev/null || curl -s --unix-socket ~/.colima/docker.sock http/_ping 2>&1 >/dev/null); then
-  docker_available=true
+  container_runner=docker
+fi
+if command -v podman &>/dev/null; then
+  container_runner=podman
 fi
 
 if [[ $OSTYPE == 'darwin'* && ":$PATH:" != "/opt/homebrew/opt/gnu-sed"* ]]; then
@@ -12,19 +14,18 @@ if [[ $OSTYPE == 'darwin'* && ":$PATH:" != "/opt/homebrew/opt/gnu-sed"* ]]; then
   export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
 fi
 
-if $docker_available; then
+if [ ${container_runner} ]; then
   sed -i -E 's/API_URL(.*):3000/API_URL\1:4000/' ./.env
 else
-  export DOCKER_AVAILABLE=$docker_available
   sed -i -E 's/API_URL(.*):4000/API_URL\1:3000/' ./.env
 fi
 
 source .env
 
-if $docker_available; then
-  docker compose build
-  docker compose down
-  docker compose up
+if [ ${container_runner} ]; then
+  $container_runner compose build
+  $container_runner compose down
+  $container_runner compose up
 else
   npm install
   cd web
