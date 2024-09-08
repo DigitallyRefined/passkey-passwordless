@@ -41,13 +41,13 @@ DO NOT share this link with anyone else, if you do they can take over your accou
         host: process.env.SMTP_HOST,
         port: 465,
         auth: {
-          user: process.env.SMTP_EMAIL,
+          user: process.env.SMTP_USERNAME || process.env.SMTP_FROM,
           pass: process.env.SMTP_PASSWORD,
         },
       });
 
       await transporter.sendMail({
-        from: `${config.webAuthnOptions.rpName} <${process.env.SMTP_EMAIL}>`,
+        from: `${config.webAuthnOptions.rpName} <${process.env.SMTP_FROM}>`,
         to: email,
         subject: `${config.webAuthnOptions.rpName} ${addDevice ? 'login' : 'registration'}`,
         text: message,
