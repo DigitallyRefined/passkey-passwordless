@@ -23,7 +23,7 @@ regForm?.addEventListener('submit', async (e) => {
     if (registrationResult === 'registered' || registrationResult === 'ok') {
       regForm.style.display = 'none';
       feedbackTxt.innerText = `Check your email/console, we've sent you a login link. ${
-        registrationResult === 'registered' ? ' Authenticator registered.' : ''
+        registrationResult === 'registered' ? ' Passkey registered.' : ''
       }`;
     } else {
       feedbackTxt.innerText = registrationResult;

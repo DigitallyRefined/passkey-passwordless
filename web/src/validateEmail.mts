@@ -6,7 +6,7 @@ const feedbackTxt = document.querySelector('#feedbackTxt') as HTMLParagraphEleme
 
 const params = new URLSearchParams(window.location.search);
 
-const registerDevice = async () => {
+const registerCredential = async () => {
   (document.querySelector('.alert') as HTMLElement).style.display = 'flex';
   try {
     await register({ isExistingUser: true });
@@ -32,8 +32,8 @@ const validateEmail = async () => {
       throw new Error(`Failed: ${req.statusText} ${JSON.stringify(res, null, 2)}`);
     }
 
-    if (params.has('registerDevice')) {
-      await registerDevice();
+    if (params.has('registerCredential')) {
+      await registerCredential();
     }
     (window as Window).location = 'account.html';
   } catch (err) {

@@ -7,17 +7,17 @@ const { authenticatorAttachment, residentKey } = config.webAuthnOptions;
 export const register = async ({
   email,
   isExistingUser = false,
-  askForDeviceName = false,
+  askForCredentialName = false,
 }: {
   email?: string;
   isExistingUser?: boolean;
-  askForDeviceName?: boolean;
+  askForCredentialName?: boolean;
 } = {}) => {
   const credentials = isExistingUser ? 'include' : 'same-origin';
 
   try {
     const generateOptionsUrl = isExistingUser
-      ? `${config.apiUrl}/account/add-device/generate-options`
+      ? `${config.apiUrl}/account/add-credential/generate-options`
       : `${config.apiUrl}/registration/generate-options`;
     const res = await fetch(generateOptionsUrl, {
       method: 'POST',
@@ -28,21 +28,21 @@ export const register = async ({
       credentials,
     });
 
-    const opts = await res.json();
+    const options = await res.json();
     if (!res.ok) {
-      throw new Error(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+      throw new Error(`Failed: ${res.statusText} ${JSON.stringify(options, null, 2)}`);
     }
 
-    opts.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
-    opts.authenticatorSelection.residentKey = residentKey;
-    opts.authenticatorSelection.requireResidentKey = residentKey === 'required';
-    opts.extensions = {
+    options.authenticatorSelection.authenticatorSelection = authenticatorAttachment;
+    options.authenticatorSelection.residentKey = residentKey;
+    options.authenticatorSelection.requireResidentKey = residentKey === 'required';
+    options.extensions = {
       credProps: Boolean(residentKey === 'preferred' || residentKey === 'required'),
     };
 
-    console.log('Registration Options', JSON.stringify(opts, null, 2));
+    console.log('Registration Options', JSON.stringify(options, null, 2));
 
-    const attRes = await startRegistration(opts);
+    const attRes = await startRegistration({ optionsJSON: options });
     console.log('Registration Response', JSON.stringify(attRes, null, 2));
     if (
       attRes?.authenticatorAttachment === 'platform' ||
@@ -53,17 +53,17 @@ export const register = async ({
       localStorage.removeItem('canLoginWithResidentKey');
     }
 
-    const deviceName = askForDeviceName ? prompt('Device name') : undefined;
+    const credentialName = askForCredentialName ? prompt('Passkey name') : undefined;
 
     const verificationUrl = isExistingUser
-      ? `${config.apiUrl}/account/add-device/verify`
+      ? `${config.apiUrl}/account/add-credential/verify`
       : `${config.apiUrl}/registration/verify`;
     const verificationRes = await fetch(verificationUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, registrationBody: attRes, deviceName }),
+      body: JSON.stringify({ email, registrationBody: attRes, credentialName }),
       credentials,
     });
 
@@ -91,7 +91,7 @@ export const register = async ({
         ? 'This email address is already registered.'
         : 'There was an error while trying to create your account.';
     }
-    if (askForDeviceName) {
+    if (askForCredentialName) {
       throw err;
     } else {
       console.error(err);

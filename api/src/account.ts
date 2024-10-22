@@ -15,10 +15,10 @@ export const getJwtToken = (user: User | null) =>
         {
           id: user.id,
           email: user.email,
-          devices: user.devices.map((device) => ({
-            credentialID: device.credentialID,
-            name: device.name,
-            lastUsed: device.lastUsed,
+          credentials: user.credentials.map((credential) => ({
+            id: credential.id,
+            name: credential.name,
+            lastUsed: credential.lastUsed,
           })),
         } as users.JwtData,
         JWT_SECRET,
@@ -28,7 +28,7 @@ export const getJwtToken = (user: User | null) =>
 
 export const getAccount = (user: users.JwtData) => ({
   email: user.email,
-  devices: user.devices,
+  credentials: user.credentials,
 });
 
 export const sendValidationEmail = async ({ id, email }: User) => {
@@ -60,41 +60,41 @@ export const updateAccount = async (user: User, { newEmail }: { newEmail: string
 
   const userToUpdate = await users.get(user);
   userToUpdate.email = newEmail;
-  userToUpdate.devices = [];
+  userToUpdate.credentials = [];
   await users.replace(user, userToUpdate);
   return { jwtToken: getJwtToken(userToUpdate) };
 };
 
-export const addDeviceGenerateOptions = async (user: User) =>
+export const addCredentialGenerateOptions = async (user: User) =>
   registrationGenerateOptions(user, await users.get(user));
 
-export const addDeviceVerify = async (
+export const addCredentialVerify = async (
   user: User,
   registrationBody: RegistrationResponseJSON,
-  deviceName: string
+  credentialName: string
 ) => {
-  await registrationVerify({ registrationBody, email: user.email }, deviceName, true);
+  await registrationVerify({ registrationBody, email: user.email }, credentialName, true);
   return { jwtToken: getJwtToken(await users.get(user)) };
 };
 
-export const renameDevice = async (
+export const renameCredential = async (
   user: User,
-  deviceIndex: string,
-  { newName }: { credentialID: string; newName: string }
+  credentialIndex: string,
+  { newName }: { id: string; newName: string }
 ) => {
   const userToUpdate = await users.get(user);
 
-  const deviceToUpdate = userToUpdate.devices[Number(deviceIndex)];
-  if (!deviceToUpdate) throw new Error('Device not found');
-  deviceToUpdate.name = newName;
+  const credentialToUpdate = userToUpdate.credentials[Number(credentialIndex)];
+  if (!credentialToUpdate) throw new Error('Credential not found');
+  credentialToUpdate.name = newName;
 
-  await users.updateDevice(userToUpdate, deviceToUpdate);
+  await users.updateCredential(userToUpdate, credentialToUpdate);
 
   return { jwtToken: getJwtToken(userToUpdate) };
 };
 
-export const deleteDevice = async (user: User, deviceIndex: string) => {
-  const updatedUser = await users.removeDevice(user, Number(deviceIndex));
+export const deleteCredential = async (user: User, credentialIndex: string) => {
+  const updatedUser = await users.removeCredential(user, Number(credentialIndex));
 
   return { jwtToken: getJwtToken(updatedUser) };
 };
