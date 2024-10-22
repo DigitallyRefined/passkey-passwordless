@@ -31,9 +31,9 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
   const options = await generateAuthenticationOptions({
     timeout,
     allowCredentials:
-      user?.devices.map((device) => ({
-        id: device.credentialID,
-        transports: device.transports || [],
+      user?.credentials.map((credential) => ({
+        id: credential.id,
+        transports: credential.transports || [],
       })) || [],
     userVerification,
     rpID,
@@ -41,7 +41,7 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
 
   /**
    * The server needs to temporarily remember this value for verification, so don't lose it until
-   * after you verify an authenticator response.
+   * after you verify a passkey response.
    */
   if (user) {
     user.challenge.validUntil = getWebAuthnValidUntil();
@@ -85,17 +85,17 @@ export const authenticationVerify = async ({
     throw new Error('Unable to verify login');
   }
 
-  let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
-  // "Query the DB" here for an authenticator matching `credentialID`
-  for (const device of user.devices) {
-    if (device.credentialID === authenticationBody.rawId) {
-      dbAuthenticator = device;
+  let dbCredential: users.WebAuthnCredentialDetails | undefined;
+  // "Query the DB" here for a credential matching `credential.id`
+  for (const credential of user.credentials) {
+    if (credential.id === authenticationBody.rawId) {
+      dbCredential = credential;
       break;
     }
   }
 
-  if (!dbAuthenticator) {
-    throw new Error('Authenticator not found');
+  if (!dbCredential) {
+    throw new Error('Credential not found');
   }
 
   const verification = await verifyAuthenticationResponse({
@@ -103,22 +103,22 @@ export const authenticationVerify = async ({
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin: webUrl,
     expectedRPID: rpID,
-    authenticator: dbAuthenticator,
+    credential: dbCredential,
     requireUserVerification: userVerification === 'required',
   });
 
   const { verified, authenticationInfo } = verification;
 
   if (verified) {
-    // Update the authenticator's counter in the DB to the newest count in the authentication
-    dbAuthenticator.counter = authenticationInfo.newCounter;
-    dbAuthenticator.lastUsed = Date.now();
-    await users.updateDevice({ email: user.email }, dbAuthenticator);
+    // Update the credential's counter in the DB to the newest count in the authentication
+    dbCredential.counter = authenticationInfo.newCounter;
+    dbCredential.lastUsed = Date.now();
+    await users.updateCredential({ email: user.email }, dbCredential);
   }
 
   return {
     verified,
-    clientExtensionResults: dbAuthenticator.clientExtensionResults,
+    clientExtensionResults: dbCredential.clientExtensionResults,
     jwtToken: verified ? getJwtToken(user) : null,
   };
 };

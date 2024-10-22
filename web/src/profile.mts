@@ -36,17 +36,17 @@ const getRelativeTimeSince = (pastDate: number) => {
   return formatter.format(Math.floor(seconds), 'second');
 };
 
-const deviceList = document.querySelector('#deviceList');
-accountDetails.devices?.map(
+const credentialList = document.querySelector('#credentialList');
+accountDetails.credentials?.map(
   ({ name, lastUsed }: { name: string; lastUsed: number }, idx: string) => {
-    const deviceLi = document.createElement('li');
-    deviceLi.id = idx;
-    deviceLi.innerText = `${name} `;
-    deviceLi.innerHTML += `<strong>Last used</strong> ${getRelativeTimeSince(lastUsed)}
-        <a href="#" class="deviceRename">✏️ Rename</a>
-        <a href="#" class="deviceRemove">❌ Remove</a>`;
+    const credentialLi = document.createElement('li');
+    credentialLi.id = idx;
+    credentialLi.innerText = `${name} `;
+    credentialLi.innerHTML += `<strong>Last used</strong> ${getRelativeTimeSince(lastUsed)}
+        <a href="#" class="credentialRename">✏️ Rename</a>
+        <a href="#" class="credentialRemove">❌ Remove</a>`;
 
-    deviceList?.appendChild(deviceLi);
+    credentialList?.appendChild(credentialLi);
   }
 );
 
@@ -67,15 +67,15 @@ const handleRes = (isOk: boolean, action: string) => {
   }
 };
 
-const addDevice = async ({ askForDeviceName = false } = {}) => {
+const addCredential = async ({ askForCredentialName = false } = {}) => {
   try {
-    const registrationResult = await register({ isExistingUser: true, askForDeviceName });
+    const registrationResult = await register({ isExistingUser: true, askForCredentialName });
     if (!(registrationResult === 'registered' || registrationResult === 'ok')) {
       throw new Error(registrationResult);
     }
     window.location.reload();
   } catch (err) {
-    alert(`Error adding device ${(err as Error)?.message}`);
+    alert(`Error adding Passkey ${(err as Error)?.message}`);
   }
 };
 
@@ -112,16 +112,16 @@ form?.addEventListener('submit', async (e) => {
     return;
   }
 
-  await addDevice();
+  await addCredential();
   await logout();
 });
 
-document.querySelectorAll('.deviceRename').forEach((el) =>
+document.querySelectorAll('.credentialRename').forEach((el) =>
   el?.addEventListener('click', async (e) => {
     const { id } = (e.target as HTMLAnchorElement).parentNode as HTMLLIElement;
-    const newName = prompt('Rename device to', accountDetails.devices[id].name);
+    const newName = prompt('Rename Passkey to', accountDetails.credentials[id].name);
     if (newName) {
-      const req = await fetch(`${config.apiUrl}/account/device/${id}`, {
+      const req = await fetch(`${config.apiUrl}/account/credential/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,11 +135,11 @@ document.querySelectorAll('.deviceRename').forEach((el) =>
   })
 );
 
-document.querySelectorAll('.deviceRemove').forEach((el) =>
+document.querySelectorAll('.credentialRemove').forEach((el) =>
   el?.addEventListener('click', async (e) => {
-    if (confirm('Are you sure you want to remove this device?') === true) {
+    if (confirm('Are you sure you want to remove this Passkey?') === true) {
       const req = await fetch(
-        `${config.apiUrl}/account/device/${
+        `${config.apiUrl}/account/credential/${
           ((e.target as HTMLAnchorElement).parentNode as HTMLLIElement)?.id
         }`,
         {
@@ -153,8 +153,8 @@ document.querySelectorAll('.deviceRemove').forEach((el) =>
   })
 );
 
-document.querySelector('#deviceAdd')?.addEventListener('click', async (e) => {
-  await addDevice({ askForDeviceName: true });
+document.querySelector('#credentialAdd')?.addEventListener('click', async (e) => {
+  await addCredential({ askForCredentialName: true });
 });
 
 document.querySelector('#deleteAccount')?.addEventListener('click', async (e) => {
