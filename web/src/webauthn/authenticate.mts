@@ -40,14 +40,16 @@ export const authenticate = async ({
       ...(email && { body: JSON.stringify({ email }) }),
     });
 
-    const opts = await res.json();
-    console.log('Authentication Options', JSON.stringify(opts, null, 2));
+    const options = await res.json();
+    console.log('Authentication Options', JSON.stringify(options, null, 2));
 
     if (!res.ok) {
-      throw new AuthenticationError(`Failed: ${res.statusText} ${JSON.stringify(opts, null, 2)}`);
+      throw new AuthenticationError(
+        `Failed: ${res.statusText} ${JSON.stringify(options, null, 2)}`
+      );
     }
 
-    const asseRes = await startAuthentication(opts, useBrowserAutofill);
+    const asseRes = await startAuthentication({ optionsJSON: options, useBrowserAutofill });
     console.log('Authentication Response', JSON.stringify(asseRes, null, 2));
 
     const verificationRes = await fetch(`${config.apiUrl}/authentication/verify`, {

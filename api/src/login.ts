@@ -31,9 +31,9 @@ export const authenticationGenerateOptions = async ({ email }: users.User) => {
   const options = await generateAuthenticationOptions({
     timeout,
     allowCredentials:
-      user?.devices.map((device) => ({
-        id: device.credentialID,
-        transports: device.transports || [],
+      user?.credentials.map((credential) => ({
+        id: credential.id,
+        transports: credential.transports || [],
       })) || [],
     userVerification,
     rpID,
@@ -85,16 +85,16 @@ export const authenticationVerify = async ({
     throw new Error('Unable to verify login');
   }
 
-  let dbAuthenticator: users.AuthenticatorDeviceDetails | undefined;
-  // "Query the DB" here for an authenticator matching `credentialID`
-  for (const device of user.devices) {
-    if (device.credentialID === authenticationBody.rawId) {
-      dbAuthenticator = device;
+  let dbCredential: users.WebAuthnCredentialDetails | undefined;
+  // "Query the DB" here for an authenticator matching `credential.id`
+  for (const credential of user.credentials) {
+    if (credential.id === authenticationBody.rawId) {
+      dbCredential = credential;
       break;
     }
   }
 
-  if (!dbAuthenticator) {
+  if (!dbCredential) {
     throw new Error('Authenticator not found');
   }
 
@@ -103,7 +103,7 @@ export const authenticationVerify = async ({
     expectedChallenge: `${expectedChallenge}`,
     expectedOrigin: webUrl,
     expectedRPID: rpID,
-    authenticator: dbAuthenticator,
+    credential: dbCredential,
     requireUserVerification: userVerification === 'required',
   });
 
@@ -111,14 +111,14 @@ export const authenticationVerify = async ({
 
   if (verified) {
     // Update the authenticator's counter in the DB to the newest count in the authentication
-    dbAuthenticator.counter = authenticationInfo.newCounter;
-    dbAuthenticator.lastUsed = Date.now();
-    await users.updateDevice({ email: user.email }, dbAuthenticator);
+    dbCredential.counter = authenticationInfo.newCounter;
+    dbCredential.lastUsed = Date.now();
+    await users.updateCredential({ email: user.email }, dbCredential);
   }
 
   return {
     verified,
-    clientExtensionResults: dbAuthenticator.clientExtensionResults,
+    clientExtensionResults: dbCredential.clientExtensionResults,
     jwtToken: verified ? getJwtToken(user) : null,
   };
 };

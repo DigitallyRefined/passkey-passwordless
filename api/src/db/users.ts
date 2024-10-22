@@ -1,7 +1,7 @@
-import { AuthenticatorDevice } from '@simplewebauthn/types';
+import { WebAuthnCredential } from '@simplewebauthn/types';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
-export interface AuthenticatorDeviceDetails extends AuthenticatorDevice {
+export interface WebAuthnCredentialDetails extends WebAuthnCredential {
   name?: string;
   lastUsed?: number;
   clientExtensionResults?: AuthenticationExtensionsClientOutputs;
@@ -24,14 +24,14 @@ export interface User {
     validUntil: number;
     data: string;
   };
-  devices: AuthenticatorDeviceDetails[];
+  credentials: WebAuthnCredentialDetails[];
   challenge: {
     validUntil: number;
     data: string;
   };
 }
 
-export type JwtData = Pick<User, 'id' | 'email' | 'devices'>;
+export type JwtData = Pick<User, 'id' | 'email' | 'credentials'>;
 
 const users = database.collection<User>('users');
 
@@ -64,9 +64,9 @@ const convertUser = (user: User | null): User => {
 
   return {
     ...user,
-    devices: user.devices.map((device) => ({
-      ...device,
-      credentialPublicKey: convertMongoDbBinaryToBuffer(device.credentialPublicKey),
+    credentials: user.credentials.map((credential) => ({
+      ...credential,
+      publicKey: convertMongoDbBinaryToBuffer(credential.publicKey),
     })),
   };
 };
@@ -113,19 +113,19 @@ export const getForChallenge = async (user: EmailOrId, requireEmailValidated = t
 export const replace = async (user: EmailOrId, update: User) =>
   users.findOneAndReplace(byIdOrEmail(user), update);
 
-export const updateDevice = async (user: EmailOrId, device: AuthenticatorDevice) =>
+export const updateCredential = async (user: EmailOrId, credential: WebAuthnCredential) =>
   users.findOneAndUpdate(
-    { ...byIdOrEmail(user), 'devices.credentialID': device.credentialID },
+    { ...byIdOrEmail(user), 'credentials.id': credential.id },
     {
       $set: {
-        'devices.$': device,
+        'credentials.$': credential,
       },
     }
   );
 
-export const removeDevice = async (user: EmailOrId, deviceIndex: number) => {
+export const removeCredential = async (user: EmailOrId, credentialIndex: number) => {
   const userToUpdate = await get(user);
-  userToUpdate.devices.splice(deviceIndex, 1);
+  userToUpdate.credentials.splice(credentialIndex, 1);
 
   await replace(user, userToUpdate);
   return userToUpdate;

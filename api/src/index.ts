@@ -12,17 +12,17 @@ import { registrationGenerateOptions, registrationVerify } from './register';
 import { authenticationGenerateOptions, authenticationVerify } from './login';
 import { config } from './config';
 import {
-  addDeviceGenerateOptions,
-  addDeviceVerify,
+  addCredentialGenerateOptions,
+  addCredentialVerify,
   deleteAccount,
-  deleteDevice,
+  deleteCredential,
   emailVerify,
   getAccount,
-  renameDevice,
+  renameCredential,
   sendValidationEmail,
   updateAccount,
 } from './account';
-import { getDeviceNameFromPlatform } from './utils';
+import { getCredentialNameFromPlatform } from './utils';
 
 export const JWT_SECRET = process.env.JWT_SECRET || uuidv4();
 
@@ -51,7 +51,7 @@ app.post(
   '/registration/verify',
   asyncHandler(async (req, res) => {
     res.send(
-      await registrationVerify(req.body, getDeviceNameFromPlatform(req.headers['user-agent']))
+      await registrationVerify(req.body, getCredentialNameFromPlatform(req.headers['user-agent']))
     );
   })
 );
@@ -126,19 +126,19 @@ app.post(
 );
 
 app.post(
-  '/account/add-device/generate-options',
+  '/account/add-credential/generate-options',
   asyncHandler(async (req: RequestJwt<any>, res) => {
-    res.send(await addDeviceGenerateOptions(req.auth));
+    res.send(await addCredentialGenerateOptions(req.auth));
   })
 );
 
 app.post(
-  '/account/add-device/verify',
+  '/account/add-credential/verify',
   asyncHandler(async (req: RequestJwt<any>, res) => {
-    const updatedUser = await addDeviceVerify(
+    const updatedUser = await addCredentialVerify(
       req.auth,
       req.body.registrationBody,
-      req.body.deviceName || getDeviceNameFromPlatform(req.headers['user-agent'])
+      req.body.credentialName || getCredentialNameFromPlatform(req.headers['user-agent'])
     );
     setLoginJwtCookie(res, updatedUser.jwtToken);
     res.send({ verified: Boolean(updatedUser.jwtToken) });
@@ -146,18 +146,18 @@ app.post(
 );
 
 app.post(
-  '/account/device/:id',
+  '/account/credential/:id',
   asyncHandler(async (req: RequestJwt<any>, res) => {
-    const updatedUser = await renameDevice(req.auth, req.params.id, req.body);
+    const updatedUser = await renameCredential(req.auth, req.params.id, req.body);
     setLoginJwtCookie(res, updatedUser.jwtToken);
     res.send(updatedUser);
   })
 );
 
 app.delete(
-  '/account/device/:id',
+  '/account/credential/:id',
   asyncHandler(async (req: RequestJwt<any>, res) => {
-    const updatedUser = await deleteDevice(req.auth, req.params.id);
+    const updatedUser = await deleteCredential(req.auth, req.params.id);
     setLoginJwtCookie(res, updatedUser.jwtToken);
     res.send(updatedUser);
   })

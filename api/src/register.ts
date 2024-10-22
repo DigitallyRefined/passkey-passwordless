@@ -49,9 +49,9 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
     timeout,
     attestationType,
     excludeCredentials: existingUser
-      ? existingUser.devices.map((device) => ({
-          id: device.credentialID,
-          transports: device.transports || [],
+      ? existingUser.credentials.map((credential) => ({
+          id: credential.id,
+          transports: credential.transports || [],
         }))
       : [],
     /**
@@ -95,7 +95,7 @@ export const registrationGenerateOptions = async ({ email }: User, existingUser?
         validUntil: tenMinutesFromNow(),
         data: verificationCode,
       },
-      devices: [],
+      credentials: [],
       challenge,
     });
     sendVerificationEmail(email, verificationCode);
@@ -112,7 +112,7 @@ export const registrationVerify = async (
     email: string;
     registrationBody: RegistrationResponseJSON;
   },
-  deviceName: string,
+  credentialName: string,
   requireEmailValidated = false
 ) => {
   const user = await users.getForChallenge({ email }, requireEmailValidated);
@@ -130,24 +130,26 @@ export const registrationVerify = async (
   const { verified, registrationInfo } = verification;
 
   if (verified && registrationInfo) {
-    const { credentialPublicKey, credentialID, counter } = registrationInfo;
+    const {
+      credential: { publicKey, id, counter },
+    } = registrationInfo;
 
-    const existingDevice = user.devices.find((device) => device.credentialID === credentialID);
+    const existingCredential = user.credentials.find((credential) => credential.id === id);
 
-    if (!existingDevice) {
+    if (!existingCredential) {
       /**
-       * Add the returned device to the user's list of devices
+       * Add the returned credential to the user's list of credentials
        */
-      const newDevice: users.AuthenticatorDeviceDetails = {
-        credentialPublicKey,
-        credentialID,
+      const newCredential: users.WebAuthnCredentialDetails = {
+        publicKey,
+        id,
         counter,
         transports: registrationBody.response.transports || [],
         clientExtensionResults: registrationBody.clientExtensionResults,
-        name: deviceName,
+        name: credentialName,
         lastUsed: Date.now(),
       };
-      user.devices.push(newDevice);
+      user.credentials.push(newCredential);
       await users.replace({ email: user.email }, user);
     }
   }
