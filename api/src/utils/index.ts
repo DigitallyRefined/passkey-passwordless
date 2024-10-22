@@ -7,17 +7,17 @@ export const getWebAuthnValidUntil = () => Date.now() + config.webAuthnOptions.t
 
 export const getTenMinutesFromNow = () => Date.now() + 600000;
 
-export const getDeviceNameFromPlatform = (userAgent?: string) => {
+export const getCredentialNameFromPlatform = (userAgent?: string) => {
   const { name, product, os } = parseUserAgent(userAgent);
   return [name, product, os?.family].filter(Boolean).join(' ');
 };
 
-export const sendVerificationEmail = async (email: string, code: string, addDevice = false) => {
+export const sendVerificationEmail = async (email: string, code: string, addCredential = false) => {
   const verificationUrl = `${config.webUrl}/validateEmail.html?code=${code}${
-    addDevice ? '&registerDevice' : ''
+    addCredential ? '&registerCredential' : ''
   }`;
 
-  const message = `To ${addDevice ? 'login to' : 'complete your registration on'} ${
+  const message = `To ${addCredential ? 'login to' : 'complete your registration on'} ${
     config.webAuthnOptions.rpName
   } please click the following link
 
@@ -49,7 +49,7 @@ DO NOT share this link with anyone else, if you do they can take over your accou
       await transporter.sendMail({
         from: `${config.webAuthnOptions.rpName} <${process.env.SMTP_FROM}>`,
         to: email,
-        subject: `${config.webAuthnOptions.rpName} ${addDevice ? 'login' : 'registration'}`,
+        subject: `${config.webAuthnOptions.rpName} ${addCredential ? 'login' : 'registration'}`,
         text: message,
       });
     } catch (err) {
