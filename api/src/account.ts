@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { RegistrationResponseJSON } from '@simplewebauthn/types';
+import { RegistrationResponseJSON } from '@simplewebauthn/server';
 import { v4 as uuidv4 } from 'uuid';
 
 import { JWT_SECRET } from './index';

@@ -1,4 +1,4 @@
-import { WebAuthnCredential } from '@simplewebauthn/types';
+import { WebAuthnCredential } from '@simplewebauthn/server';
 import { convertMongoDbBinaryToBuffer, database } from './index';
 
 export interface WebAuthnCredentialDetails extends WebAuthnCredential {

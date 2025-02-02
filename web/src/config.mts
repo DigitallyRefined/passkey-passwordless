@@ -17,7 +17,7 @@ export const config: Config = {
      * "none" is the recommended setting to allow users to use different platforms & security key manufactures
      *
      * "direct" wants to receive the attestation statement
-     * "indirect" prefers a verifiable attestation statement but allows the client to decide how to obtain it
+     * "enterprise" wants to receive the attestation statement and wants to know the identity of the authenticator
      * "none" not interested in authenticator attestation
      */
     attestationType: 'none',
