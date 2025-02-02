@@ -2,7 +2,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse } from '@simple
 import { isoUint8Array } from '@simplewebauthn/server/helpers';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { RegistrationResponseJSON } from '@simplewebauthn/types';
+import type { RegistrationResponseJSON } from '@simplewebauthn/server';
 
 import * as users from './db/users';
 import type { User } from './db/users';

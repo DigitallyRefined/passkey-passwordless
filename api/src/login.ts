@@ -1,10 +1,9 @@
 import {
-  VerifiedAuthenticationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 
 import * as users from './db/users';
 import * as anonymousChallenges from './db/anonymousChallenges';

@@ -1,5 +1,4 @@
-// @ts-ignore
-import { startRegistration } from '../node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+import { startRegistration } from '../simpleWebAuthnBrowserProxy.mjs';
 
 import { config } from '../config.mjs';
 const { authenticatorAttachment, residentKey } = config.webAuthnOptions;

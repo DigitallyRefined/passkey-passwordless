@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rm -Rf dist
+
 npx tsc
 cp src/*.html dist/
 cp src/*.css dist/

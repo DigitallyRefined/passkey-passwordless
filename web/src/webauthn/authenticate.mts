@@ -1,10 +1,6 @@
-import {
-  browserSupportsWebAuthn,
-  startAuthentication,
-  // @ts-ignore
-} from '../node_modules/@simplewebauthn/browser/dist/bundle/index.js';
-// @ts-ignore
-import type { AuthenticationResponseJSON } from '@simplewebauthn/type';
+import { browserSupportsWebAuthn, startAuthentication } from '../simpleWebAuthnBrowserProxy.mjs';
+
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 
 import { config } from '../config.mjs';
 
