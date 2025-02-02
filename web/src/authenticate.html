@@ -14,7 +14,7 @@
 
   <script type="module">
     import { authenticate } from './webauthn/authenticate.mjs';
-    import { browserSupportsWebAuthnAutofill } from './node_modules/@simplewebauthn/browser/dist/bundle/index.js';
+    import { browserSupportsWebAuthnAutofill } from './webauthn/simpleWebAuthnBrowserProxy.mts';
 
     /**
      * Authentication via autofill selection & passkey
