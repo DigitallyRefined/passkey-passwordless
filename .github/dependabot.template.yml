@@ -4,18 +4,24 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+enable-beta-ecosystems: true # Remove once docker-compose updates become stable
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/api" # Location of package manifests
+  - package-ecosystem: "docker"
+    directory: "*/Dockerfile"
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/web" # Location of package manifests
+  - package-ecosystem: "docker-compose"
+    directory: "docker-compose*"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "{package-lock.json,*/package-lock.json}"
     schedule:
       interval: "weekly"
