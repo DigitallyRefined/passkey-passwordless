@@ -48,7 +48,7 @@ services:
       <<: *common-variables
 
   mongo-express:
-    image: mongo-express:1.0.2-18
+    image: mongo-express:1-18
     restart: unless-stopped
     ports:
       - 8081:8081
