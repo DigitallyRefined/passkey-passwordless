@@ -31,3 +31,6 @@ updates:
     directory: "{package-lock.json,*/package-lock.json}"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "@types/node"
+        versions: [">=23"] 
