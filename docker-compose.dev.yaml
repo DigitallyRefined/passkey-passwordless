@@ -21,7 +21,7 @@ x-common-variables: &common-variables
 
 services:
   web:
-    image: nginx:1.27.5
+    image: nginx:1.29.0
     restart: unless-stopped
     ports:
       - 3000:80
