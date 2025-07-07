@@ -10,7 +10,7 @@
     "@simplewebauthn/browser": "^13.1.0"
   },
   "devDependencies": {
-    "@simplewebauthn/server": "^13.1.1",
+    "@simplewebauthn/server": "^13.1.2",
     "typescript": "^5.8.3"
   },
   "repository": {
