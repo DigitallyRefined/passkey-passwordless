@@ -30,7 +30,7 @@ services:
       - ./web/etc/nginx/conf.d/mjs.conf:/etc/nginx/conf.d/mjs.conf:ro
 
   api:
-    image: node:22.17.1
+    image: node:22.18.0
     restart: unless-stopped
     ports:
       - 4000:4000
