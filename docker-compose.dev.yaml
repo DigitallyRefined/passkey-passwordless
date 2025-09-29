@@ -42,7 +42,7 @@ services:
       <<: *common-variables
 
   db:
-    image: mongo:8.0.12
+    image: mongo:8.0.14
     restart: unless-stopped
     ports:
       - 27017:27017
