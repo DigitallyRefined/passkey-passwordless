@@ -1,5 +1,6 @@
-import http from 'http';
-import path from 'path';
+import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import express, { Response } from 'express';
 import cors from 'cors';
@@ -7,10 +8,10 @@ import { expressjwt, Request as RequestJwt } from 'express-jwt';
 import { v4 as uuidv4 } from 'uuid';
 import cookieParser from 'cookie-parser';
 
-import { asyncHandler, errorHandler } from './handlers';
-import { registrationGenerateOptions, registrationVerify } from './register';
-import { authenticationGenerateOptions, authenticationVerify } from './login';
-import { config } from './config';
+import { asyncHandler, errorHandler } from './handlers.js';
+import { registrationGenerateOptions, registrationVerify } from './register.js';
+import { authenticationGenerateOptions, authenticationVerify } from './login.js';
+import { config } from './config.js';
 import {
   addCredentialGenerateOptions,
   addCredentialVerify,
@@ -21,8 +22,8 @@ import {
   renameCredential,
   sendValidationEmail,
   updateAccount,
-} from './account';
-import { getCredentialNameFromPlatform } from './utils';
+} from './account.js';
+import { getCredentialNameFromPlatform } from './utils/index.js';
 
 export const JWT_SECRET = process.env.JWT_SECRET || uuidv4();
 
@@ -183,12 +184,15 @@ app.get(
 app.use(errorHandler);
 
 if (!process.env.ME_CONFIG_MONGODB_URL) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   console.log(path.join(__dirname, '..', 'web/dist'));
   app.use('/', express.static(path.join(__dirname, '..', '..', 'web', 'dist')));
 }
 
 const host = '0.0.0.0';
-const port = process.env.ME_CONFIG_MONGODB_URL ? 4000 : 3000;
+const port = 4000;
 
 http.createServer(app).listen(port, host, () => {
   console.log(`🚀 Server ready at ${host}:${port}`);

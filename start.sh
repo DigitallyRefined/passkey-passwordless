@@ -14,12 +14,6 @@ if [[ $OSTYPE == 'darwin'* && ":$PATH:" != "/opt/homebrew/opt/gnu-sed"* ]]; then
   export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
 fi
 
-if [ ${container_runner} ]; then
-  sed -i -E 's/API_URL(.*):3000/API_URL\1:4000/' ./.env
-else
-  sed -i -E 's/API_URL(.*):4000/API_URL\1:3000/' ./.env
-fi
-
 source .env
 
 if [ ${container_runner} ]; then
@@ -28,10 +22,11 @@ if [ ${container_runner} ]; then
   $container_runner compose up
 else
   npm install
-  cd web
-  npm run dev &
-  npm run build
-  cd -
+
+  npm --prefix ./web run build
+  npm --prefix ./web start &
+
+  npm --prefix ./api run build
   npm --prefix ./api start
 fi
 

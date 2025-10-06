@@ -15,8 +15,4 @@ ENV WEB_URL $WEB_URL
 ENV API_URL $API_URL
 
 RUN npm run build
-
-FROM nginx:1-alpine
-
-COPY --from=builder /app/build/dist /usr/share/nginx/html
-COPY ./etc/nginx/conf.d/mjs.conf /etc/nginx/conf.d/mjs.conf
+CMD npm start

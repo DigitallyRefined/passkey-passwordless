@@ -1,13 +1,13 @@
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { RegistrationResponseJSON } from '@simplewebauthn/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import { JWT_SECRET } from './index';
+import { JWT_SECRET } from './index.js';
 
-import * as users from './db/users';
-import type { User } from './db/users';
-import { registrationGenerateOptions, registrationVerify } from './register';
-import { getTenMinutesFromNow, sendVerificationEmail } from './utils';
+import * as users from './db/users.js';
+import type { User } from './db/users.js';
+import { registrationGenerateOptions, registrationVerify } from './register.js';
+import { getTenMinutesFromNow, sendVerificationEmail } from './utils/index.js';
 
 export const getJwtToken = (user: User | null) =>
   user

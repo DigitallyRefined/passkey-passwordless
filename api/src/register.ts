@@ -4,14 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { RegistrationResponseJSON } from '@simplewebauthn/server';
 
-import * as users from './db/users';
-import type { User } from './db/users';
-import { config } from './config';
+import * as users from './db/users.js';
+import type { User } from './db/users.js';
+import { config } from './config.js';
 import {
   getTenMinutesFromNow as tenMinutesFromNow,
   getWebAuthnValidUntil,
   sendVerificationEmail,
-} from './utils';
+} from './utils/index.js';
 
 const {
   webUrl,

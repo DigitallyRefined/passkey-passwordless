@@ -1,6 +1,6 @@
 x-common-variables: &common-variables
   WEB_HOSTNAME: ${WEB_HOSTNAME-localhost}
-  WEB_URL: ${WEB_URL-http://localhost:3000}
+  WEB_URL: ${WEB_URL-http://localhost:8000}
   API_URL: ${API_URL-http://localhost:4000}
 
   MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME-root}
@@ -27,7 +27,7 @@ services:
         <<: *common-variables
     restart: unless-stopped
     ports:
-      - 3000:80
+      - 8000:8000
 
   api:
     build: ./api

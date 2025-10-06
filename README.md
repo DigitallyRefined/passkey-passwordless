@@ -42,7 +42,7 @@ sudo dnf install openssl1.1
 
 ## Usage
 
-1. http://localhost:3000 to register and login
+1. http://localhost:8000 to register and login
 2. Check the console output for the email confirmation links
 3. In Chrome, open "DevTools > Console > More tools (hamburger menu) > WebAuthn > Enable virtual authenticator environment" to try out different key types
 4. If Docker is installed check http://localhost:8081 for the user database

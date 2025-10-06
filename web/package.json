@@ -1,17 +1,25 @@
 {
   "name": "passkey-passwordless-web",
   "version": "0.0.1",
-  "main": "index.html",
+  "type": "module",
+  "exports": "./dist/index.js",
   "scripts": {
     "build": "./build.sh",
-    "dev": "tsc --watch"
+    "build:dev": "npm run build && tsc --watch",
+    "start": "ws --directory ./dist",
+    "start:dev": "concurrently \"npm run build:dev\" \"npm start\""
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.2.2"
   },
   "devDependencies": {
     "@simplewebauthn/server": "^13.2.2",
+    "concurrently": "^9.2.1",
+    "local-web-server": "^5.4.0",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "repository": {
     "type": "git",

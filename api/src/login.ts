@@ -5,12 +5,12 @@ import {
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 
-import * as users from './db/users';
-import * as anonymousChallenges from './db/anonymousChallenges';
+import * as users from './db/users.js';
+import * as anonymousChallenges from './db/anonymousChallenges.js';
 
-import { config } from './config';
-import { getWebAuthnValidUntil } from './utils';
-import { getJwtToken } from './account';
+import { config } from './config.js';
+import { getWebAuthnValidUntil } from './utils/index.js';
+import { getJwtToken } from './account.js';
 
 const {
   webUrl,

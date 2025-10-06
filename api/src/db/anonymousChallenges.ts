@@ -1,5 +1,5 @@
-import { database } from './index';
-import { getWebAuthnValidUntil } from '../utils';
+import { database } from './index.js';
+import { getWebAuthnValidUntil } from '../utils/index.js';
 
 export interface AnonymousChallenges {
   validUntil: number;

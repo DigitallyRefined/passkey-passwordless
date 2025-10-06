@@ -1,5 +1,5 @@
 export const config: Config = {
-  webUrl: 'http://localhost:3000',
+  webUrl: 'http://localhost:8000',
   apiUrl: 'http://localhost:4000',
   webAuthnOptions: {
     /**

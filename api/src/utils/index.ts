@@ -1,14 +1,14 @@
-import { parse as parseUserAgent } from 'platform';
+import userAgentPlatform from 'platform';
 import { createTransport } from 'nodemailer';
 
-import { config } from '../config';
+import { config } from '../config.js';
 
 export const getWebAuthnValidUntil = () => Date.now() + config.webAuthnOptions.timeout;
 
 export const getTenMinutesFromNow = () => Date.now() + 600000;
 
 export const getCredentialNameFromPlatform = (userAgent?: string) => {
-  const { name, product, os } = parseUserAgent(userAgent);
+  const { name, product, os } = userAgentPlatform.parse(userAgent);
   return [name, product, os?.family].filter(Boolean).join(' ');
 };
 
