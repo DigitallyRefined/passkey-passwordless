@@ -7,7 +7,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^13.2.0"
+    "@simplewebauthn/browser": "^13.2.2"
   },
   "devDependencies": {
     "@simplewebauthn/server": "^13.2.1",
