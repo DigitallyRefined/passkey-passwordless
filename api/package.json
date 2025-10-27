@@ -22,7 +22,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.9",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
