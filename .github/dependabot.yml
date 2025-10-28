@@ -11,23 +11,47 @@ updates:
     directory: api
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: node
+        versions:
+          - '>=25'
   - package-ecosystem: docker
     directory: web
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: node
+        versions:
+          - '>=25'
   - package-ecosystem: docker-compose
     directory: .
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: node
+        versions:
+          - '>=25'
   - package-ecosystem: npm
     directory: api
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '@types/node'
+        versions:
+          - '>=25'
   - package-ecosystem: npm
     directory: .
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '@types/node'
+        versions:
+          - '>=25'
   - package-ecosystem: npm
     directory: web
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '@types/node'
+        versions:
+          - '>=25'
