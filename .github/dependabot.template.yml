@@ -15,22 +15,13 @@ updates:
     directory: "*/Dockerfile"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "node"
-        versions: [">=23"]
 
   - package-ecosystem: "docker-compose"
     directory: "docker-compose*"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "node"
-        versions: [">=23"]
 
   - package-ecosystem: "npm"
     directory: "{package-lock.json,*/package-lock.json}"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "@types/node"
-        versions: [">=23"] 
