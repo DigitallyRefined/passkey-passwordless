@@ -18,4 +18,4 @@ jobs:
         uses: Makeshift/generate-dependabot-glob-action@master
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
