@@ -35,7 +35,7 @@
     "typescript": "^5.9.3"
   },
   "optionalDependencies": {
-    "mongodb-memory-server": "^11.0.0"
+    "mongodb-memory-server": "^11.0.1"
   },
   "engines": {
     "node": ">=18"
