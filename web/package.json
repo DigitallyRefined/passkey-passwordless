@@ -13,7 +13,7 @@
     "@simplewebauthn/browser": "^13.2.2"
   },
   "devDependencies": {
-    "@simplewebauthn/server": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.3",
     "concurrently": "^9.2.1",
     "local-web-server": "^5.4.0",
     "typescript": "^5.9.3"
