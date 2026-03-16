@@ -10,7 +10,7 @@
     "start:dev": "concurrently \"npm run build:dev\" \"npm start\""
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^13.2.2"
+    "@simplewebauthn/browser": "^13.3.0"
   },
   "devDependencies": {
     "@simplewebauthn/server": "^13.2.3",
