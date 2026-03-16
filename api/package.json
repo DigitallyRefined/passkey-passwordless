@@ -9,7 +9,7 @@
     "start:dev": "nodemon"
   },
   "dependencies": {
-    "@simplewebauthn/server": "^13.2.3",
+    "@simplewebauthn/server": "^13.3.0",
     "base64url": "^3.0.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
