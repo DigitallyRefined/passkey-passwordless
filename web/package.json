@@ -16,7 +16,7 @@
     "@simplewebauthn/server": "^13.3.0",
     "concurrently": "^9.2.1",
     "local-web-server": "^5.4.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=18"
