@@ -10,11 +10,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: "docker"
     directory: "*/Dockerfile"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     ignore:
       - dependency-name: "node"
         versions: [">=25"]
@@ -23,6 +27,8 @@ updates:
     directory: "docker-compose*"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     ignore:
       - dependency-name: "node"
         versions: [">=25"]
@@ -31,6 +37,8 @@ updates:
     directory: "{package-lock.json,*/package-lock.json}"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     ignore:
       - dependency-name: "@types/node"
         versions: [">=25"]
