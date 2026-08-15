@@ -7,12 +7,14 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
   - package-ecosystem: docker
     directory: api
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
@@ -23,6 +25,7 @@ updates:
     directory: web
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
@@ -33,6 +36,7 @@ updates:
     directory: .
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
@@ -43,6 +47,7 @@ updates:
     directory: api
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
@@ -53,6 +58,7 @@ updates:
     directory: .
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
@@ -63,6 +69,7 @@ updates:
     directory: web
     schedule:
       interval: weekly
+      day: sunday
     cooldown:
       default-days: 5
     ignore:
