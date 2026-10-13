@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@simplewebauthn/server": "^13.3.3",
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "local-web-server": "^5.4.0",
     "typescript": "^7.0.2"
   },
