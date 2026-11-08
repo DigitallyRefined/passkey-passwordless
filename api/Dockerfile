@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24.22.0
+FROM node:24.22.1
 
 WORKDIR /app
 COPY . .
